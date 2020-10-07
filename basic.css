@@ -20,6 +20,10 @@ header{
     color: gray;
 }
 
+section {
+    margin-top: 30px;
+}
+
 nav{
     position: absolute;
     bottom: -5px;
