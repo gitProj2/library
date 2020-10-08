@@ -19,3 +19,18 @@ table {
     background-color: #404040;
     color: white;
   }
+
+  #member {
+    width: 250px;
+    float: right;
+    margin-right: 50px;
+  }
+
+  #member:hover {
+    transform:scale(0.8);
+    transition: transform.5s;
+  }
+
+  @media screen and (max-width: 550px) {
+    #member {width: 150px;}
+  }
