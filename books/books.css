@@ -1,12 +1,3 @@
-* {
-    box-sizing: border-box; margin: 0px;
-}
-
-a {
-    text-decoration: none;
-    color: black;
-}
-
 aside {
     display: flex;
     flex-direction: row;    
@@ -21,6 +12,11 @@ aside {
 .aside__menu {
     padding: 50px 24px;
     border-right: 1px solid lightgrey
+}
+
+.aside__menu li a {
+    text-decoration: none;
+    color: black;
 }
 
 .books__menu {
