@@ -1,0 +1,80 @@
+* {
+    box-sizing: border-box;
+    
+}
+li {
+    padding:5px;
+}
+section {
+    margin: 0 auto;
+    width: 500px;
+    height: 500px;
+    position: relative;
+    top: 100px;
+}
+input {
+    text-align: center;
+    height: 25px;
+}
+
+.title {
+    float: left;
+    margin:20px;
+    width: 100px;
+    height: 100px;
+    top:100px;
+}
+
+.box1  {
+    float: left;
+    text-decoration: none;
+    border-width: 1px;
+    border-style: solid;
+    display: block;
+    list-style-type: none;
+    padding:20px 30px;
+    font-weight: bold;
+    top:100px;
+}   
+.box2, #signup1 {
+    float:left;
+    font-weight: bold;
+    position: relative;
+    vertical-align: middle;
+    top: 20px;
+    left: -50px;
+   
+}
+#signup1 {
+    padding: 0px 10px;
+    border-radius: 10px;
+    width: 100px;
+    height: 30px;
+    border-width: 2px;
+    cursor: pointer;    
+}
+
+.box3 {
+    display: block;
+    clear: both;
+    position: relative;
+    top: 60px;
+    left: 180px;
+    
+}
+.signin2, .canceal {  
+    float: left;
+    margin: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 10px;
+    vertical-align: bottom;
+    width: 100px;
+    height: 30px;
+    border-width: 2px;
+    cursor: pointer;    
+}
+.signin2 {
+    background-color: lightblue;
+}

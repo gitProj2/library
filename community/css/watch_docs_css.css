@@ -1,0 +1,29 @@
+section div{
+    border: solid gray 1px;
+    margin: 5px 0;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.container{
+    display: inline-block;
+}
+
+.float-right{
+    float: right;
+    margin: 5px 5px;
+}
+
+section div button{
+    background-color: green; 
+    border-radius: 5px;
+}
+
+section div textarea{
+    resize: none;
+    border: none;
+    width: 94%;
+    height: 100%;
+    margin-top: 5px;
+    margin-left: 5px;
+}
