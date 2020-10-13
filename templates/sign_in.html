@@ -1,0 +1,24 @@
+<link rel="stylesheet" href="../static/css/signincss.css">
+{% extends "base.html" %}
+{% block section %}
+ 
+    <section>
+        <div class="title">
+            <h1 class="signup">로그인</h1>
+        </div>
+        <div>
+            <ul class="box1">
+                <li><label>아이디 <input type="text" id="id" style="float:right;" autofocus required></label></li>
+                <li><label>비밀번호 &nbsp;<input type="password" id="pw" style="float:right;" placeholder="영문, 숫자 혼합 5자 이상" autofocus required></label></li>
+            </ul>
+            <div>
+            <p class="box2">■ 회원가입을 하지 않으신 경우 &nbsp;</p>  
+            <input type="button" id="signup1" value="회원가입하기" a href="#">
+            </div>
+        </div>
+        <div class="box3">
+            <div><input type="submit" class="signin2" value="로그인" a href="#"></div>
+            <div><input type="button" class="canceal" value="취소" a href="#"></div>
+        </div>
+    </section>
+{% endblock %}
