@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="../static/css/books.css">
+{% extends "base.html" %}
+{% block section %}
+ 
+      <section class="main">
+        <aside>
+          <ul class="aside__menu">
+            <li><h4 href="#">전체보기</h4></li>
+    
+              <li><a href="#"></a></li>
+              <li><a href="#">C</a></li>
+              <li><a href="#">C++</a></li>
+              <li><a href="#">C#</a></li>
+              <li><a href="#">Java</a></li>
+              <li><a href="#">JavaScript</a></li>
+            
+          </ul>
+        </aside>
+        <section class="books">
+          <section class="books__menu">
+            {{ content | safe }}
+          </section>
+          <section class="book__search">
+            <select name="search">
+              <option value="">글쓴이</option>
+              <option value="">제목</option>
+            </select>
+            <input type="text">
+            <button>검색</button>
+          </section>
+        </section>
+      </section>
+{% endblock %}
