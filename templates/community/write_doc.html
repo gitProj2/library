@@ -8,17 +8,19 @@
         <hr>
         <input class="input" type="button" value="목록으로" onclick="location.href='/community/board_home'">
         <br>
-        <p>작성자 ID : xxxxx </p>
-        <div>
-          <p>제목 : </p>
-          <input type="text" value=""> 
-        </div>
-        <br>
-        <textarea name="article" rows="30">write somthing</textarea> 
-        <br>
-        <div class="div">
-          <p>파일첨부 :</p><input type="file" value="file" onclick="">
-          <input class="input" type="button" value="등록" onclick="">
-        </div>
+        <p>작성자 : {{content | safe}}</p>
+        <form action="/community/watch_doc" method="POST">
+          <div>
+            <p>제목 : </p>
+            <input type="text" name="title"> 
+          </div>
+          <br>
+          <textarea rows="30" name="contents"></textarea> 
+          <br>
+          <div class="div">
+            <p>파일첨부 :</p><input type="file" onclick="" name="post_file">
+            <input class="input" type="submit" value="등록" onclick="">
+          </div> 
+        </form>
     </section>
     {% endblock %}
