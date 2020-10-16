@@ -34,3 +34,7 @@ input[type="text"]{
     vertical-align: top;
 }
 
+section h1 {
+    text-align: center;
+}
+

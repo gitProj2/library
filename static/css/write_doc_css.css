@@ -6,6 +6,10 @@ section textarea{
     
 }
 
+section h1 {
+    text-align: center;
+}
+
 section div p{
     display: inline;
 }

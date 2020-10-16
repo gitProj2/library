@@ -1,6 +1,7 @@
 import mariadb
 import sys
 from flask import Flask, render_template, request, session
+
 app = Flask(__name__)
 
 
@@ -39,8 +40,51 @@ def master():
     return render_template("/master/master.html")
 
 @app.route('/community/board_home') 
-# 글 작성 버튼 클릭하면 회원여부 확인 후 글 작성 페이지로 이동, 회원이 아니면 경고 메시지 띄우기
+## 글 작성 버튼 클릭하면 회원여부 확인 후 글 작성 페이지로 이동, 회원이 아니면 경고 메시지 띄우기
 def board_home():
+
+    sql1 = "SELECT ID FROM LIBRARY.`MEMBER` where `NUMBER` ;"
+    #아이디 호출
+
+    # SELECT m.NUMBER, m.ID, p.title, p.date, p.modify_date, p.post_file, p.contents 
+    # FROM LIBRARY.POST as p
+    # LEFT join LIBRARY.MEMBER as m
+    # on p.MEMBER_NUMBER = m.NUMBER;
+
+
+    sql2 = "SELECT `NUMBER` , TITLE, `DATE`, MODIFY_DATE from LIBRARY.POST;"
+    #글 번호, 제목, 작성일, 최종수정일 호출
+
+    try:
+        conn1 = get_conn()
+        cur1 = conn1.cursor()
+        cur1.execute(sql1)
+        # cur1은 아이디 값
+
+        conn2 = get_conn()
+        cur2 = conn2.cursor()
+        cur2.execute(sql2)
+        # cur2는 글 번호, 제목, 작성일, 최종수정일 값
+
+        cur1 = id
+
+
+        result = ""
+        result += """<table>
+                        <thead>
+                            <tr>
+                                <th>글 번호</th>
+                                <th>제목</th>
+                                <th>작성자</th>
+                                <th>작성일</th>
+                                <th>최종수정</th>
+                            </tr>
+                        </thead>
+                    """
+
+    except:
+        pass
+
     return render_template("/community/board_home.html")
 
 @app.route('/community/write_doc')
@@ -78,7 +122,7 @@ def send_doc():
         if conn:
             conn.close()
 
-    return render_template("/community/board_home.html")
+    return render_template("/community/watch_doc.html")
 
 
 @app.route("/books")
