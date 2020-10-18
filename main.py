@@ -39,62 +39,106 @@ def member_info():
 def master():
     return render_template("/master/master.html")
 
-@app.route('/community/board_home') 
+@app.route('/community/board_home')
 ## 글 작성 버튼 클릭하면 회원여부 확인 후 글 작성 페이지로 이동, 회원이 아니면 경고 메시지 띄우기
 def board_home():
 
-    sql1 = "SELECT ID FROM LIBRARY.`MEMBER` where `NUMBER` ;"
-    #아이디 호출
-
-    # SELECT m.NUMBER, m.ID, p.title, p.date, p.modify_date, p.post_file, p.contents 
-    # FROM LIBRARY.POST as p
-    # LEFT join LIBRARY.MEMBER as m
-    # on p.MEMBER_NUMBER = m.NUMBER;
-
-
-    sql2 = "SELECT `NUMBER` , TITLE, `DATE`, MODIFY_DATE from LIBRARY.POST;"
-    #글 번호, 제목, 작성일, 최종수정일 호출
-
+    sql= """
+        SELECT m.ID, p.NUMBER, p.title, p.date
+        FROM LIBRARY.POST as p
+        LEFT join LIBRARY.MEMBER as m
+        on p.MEMBER_NUMBER = m.NUMBER ORDER by p.NUMBER desc;
+        """
+    result = ""
     try:
-        conn1 = get_conn()
-        cur1 = conn1.cursor()
-        cur1.execute(sql1)
-        # cur1은 아이디 값
-
-        conn2 = get_conn()
-        cur2 = conn2.cursor()
-        cur2.execute(sql2)
-        # cur2는 글 번호, 제목, 작성일, 최종수정일 값
-
-        cur1 = id
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
 
 
-        result = ""
         result += """<table>
                         <thead>
                             <tr>
-                                <th>글 번호</th>
+                                <th>번호</th>
                                 <th>제목</th>
-                                <th>작성자</th>
-                                <th>작성일</th>
-                                <th>최종수정</th>
+                                <th>글쓴이</th>
+                                <th>작성일시</th>
                             </tr>
                         </thead>
                     """
+        for_rotation_counting = 0
+        for (id, number, title, date) in cur:
+            for_rotation_counting +=1
+            result += """
+                        <tr>
+                            <th>{1}</th>
+                            <th><a href="/community/watch_doc?p.number={4}">{2}</a></th> 
+                            <th>{0}</th>
+                            <th>{3}</th>
+                        </tr>
+                           
+                        """.format(id, number, title, date, number)
 
-    except:
-        pass
+        result += "</table>"
+    except mariadb.Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
 
-    return render_template("/community/board_home.html")
+    return render_template("/community/board_home.html", content = result, content1 = for_rotation_counting)
 
-@app.route('/community/write_doc')
-def write_doc():
-    author = session['id']
-    return render_template("/community/write_doc.html", content = author)
+@app.route('/community/board_home_search', methods = ["GET"])
+def search_doc():
 
-@app.route('/community/watch_doc')
-def watch_doc():
-    return render_template("/community/watch_doc.html")
+    search_text_val = request.args.get("search_text")
+
+    sql = """
+        SELECT p.NUMBER, p.TITLE, m.ID, p.DATE 
+        FROM LIBRARY.POST as p left join LIBRARY.MEMBER as m
+        on m.NUMBER = p.MEMBER_NUMBER
+        where p.TITLE LIKE '%{}%'
+        order by p.NUMBER DESC;
+        """.format(search_text_val)
+    result = ""
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+
+
+        result += """
+            <table>
+                <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>제목</th>
+                        <th>글쓴이</th>
+                        <th>작성일시</th>
+                    </tr>
+                </thead> """
+    
+        for_rotation_counting = 0
+        for (number, title, id, date) in cur:
+            for_rotation_counting +=1
+            result += """
+                    <tbody>
+                        <tr>
+                            <td>{0}</td>
+                            <td><a href="/community/watch_doc?p.number={4}">{1}</a></td>
+                            <td>{2}</td>
+                            <td>{3}</td>
+                        </tr>
+                    </tbody>
+                """.format(number, title, id, date, number)
+        result += "</table>"
+    except mariadb.Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+    return render_template("/community/board_home_search.html", content = result, content1 = for_rotation_counting)
+    
 
 @app.route('/community/watch_doc', methods = ["POST"])
 def send_doc():
@@ -123,6 +167,69 @@ def send_doc():
             conn.close()
 
     return render_template("/community/watch_doc.html")
+
+@app.route('/community/watch_doc', methods = ["GET"])
+def watch_doc():
+    post_number = request.args.get("p.number")
+    result = ""
+    try:
+        sql = """
+            SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+            p.MODIFY_DATE FROM LIBRARY.POST as p
+            left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+            WHERE p.NUMBER = {};
+            """.format(post_number)
+
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+
+
+        for (title, contents, id, file, date, modify_date) in cur:
+            if modify_date == None:
+                modify_date = "수정 이력 없음"
+
+                result += """
+                        <h3>{0}</h3>
+                        <div class="container">
+                            <p>{1}</p>
+                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                            
+                            <input class="float-right" type="button" value="삭제">
+                            <input class="float-right" type="button" value="수정">
+                            <button class="float-right" disabled><span style="color: white;">작성자 :  {2} 작성일시 : {4} 최종 수정 : {5}</span></button>  
+                        </div>
+                        """.format(title, contents, id, file, date, modify_date)
+            else:
+                result += """
+                        <h3>{0}</h3>
+                        <div class="container">
+                            <p>{1}</p>
+                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                            
+                            <input class="float-right" type="button" value="삭제">
+                            <input class="float-right" type="button" value="수정">
+                            <button class="float-right" disabled><span style="color: white;">작성자 :  {2} 작성일시 : {4} 최종 수정 : {5}</span></button>  
+                        </div>
+                        """.format(title, contents, id, file, date, modify_date)
+    except mariadb.Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+            
+    return render_template("/community/watch_doc.html", content_list= result)
+
+    
+@app.route('/community/write_doc')
+def write_doc():
+    author = session['id']
+    return render_template("/community/write_doc.html", content = author)
+
+
+# @app.route('/community/watch_doc')
+# def add_comment():
+#     author = session['id']
+#     return render_template("/community/watch_doc.html", content = author)
+
 
 
 @app.route("/books")

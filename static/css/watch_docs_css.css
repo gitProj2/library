@@ -1,3 +1,12 @@
+section h1{
+    text-align: center;
+}
+
+section p {
+    margin-top: auto; 
+    margin-bottom: auto;
+}
+
 section div{
     border: solid gray 1px;
     margin: 5px 0;
@@ -22,8 +31,12 @@ section div button{
 section div textarea{
     resize: none;
     border: none;
+    outline: none;
     width: 94%;
-    height: 100%;
     margin-top: 5px;
     margin-left: 5px;
+}
+
+section div span{
+    color: white;
 }

@@ -1,120 +1,22 @@
-<link rel="stylesheet" href="../../static/css/board_home_css.css">
+<link rel="stylesheet" href="../../static/css/board_home_css.css"> 
 {% extends "base.html" %}
 {% block section %}
 
     <section>
-        <h1>게시판</h1>  
- 
+        <h1>생각 나눔</h1> 
         <div>  
-            <p class="inline-block">게시물 : xx건</p>
+            <p class="inline-block">게시물 : {{content1 | safe}} 건</p>
         
             
-            <form class="inline-block float" action="" method="GET">
-                <input type="text" title="검색">
+            <form class="inline-block float" action="/community/board_home_search" method="GET">
+                <input placeholder="제목으로 검색" onfocus="this.placeholder=''" onblur="this.placeholder='제목으로 검색'" type="text" name="search_text">
                 <input type="submit" value="검색">
             </form>
- 
-            <form class="inline-block float">
-                <select>
-                    <option value="제목" >제목</option>
-                    <option value="작성자">작성자</option>
-                </select>
-            </form>  
+
         </div>
  
         <br>
- 
-        <table>
-            <thead>
-                <tr>
-                    <th>글 번호</th>
-                    <th>제목</th>
-                    <th>작성자</th>
-                    <th>작성일</th>
-                    <th>최종수정</th>
-                </tr>
-            </thead>
-    
-            <tr>
-                <td>1</td>
-                <td><a href="/community/watch_doc">-----클릭하세요------</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-
-            <tr>
-                <td>1</td>
-                <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                <td>jhl</td>
-                <td>2020-09-30</td>
-                <td>2020-10-01</td>
-            </tr>
-        </table>
+        {{content | safe}}
         
         <br>
  
