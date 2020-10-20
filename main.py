@@ -40,9 +40,9 @@ def master():
     return render_template("/master/master.html")
 
 @app.route('/community/board_home')
-## 글 작성 버튼 클릭하면 회원여부 확인 후 글 작성 페이지로 이동, 회원이 아니면 경고 메시지 띄우기
+## 글 작성 버튼 클릭하면 회원여부 확인 후 글 작성 페이지로 이동, 회원이 아니면 경고 메시지 띄우기- 기능 구현 전
 def board_home():
-
+    # 데이터베이스에서 아래 값들을 불러와 보드홈에서 내림차순 테이블 구현  
     sql= """
         SELECT m.ID, p.NUMBER, p.title, p.date
         FROM LIBRARY.POST as p
@@ -66,7 +66,7 @@ def board_home():
                             </tr>
                         </thead>
                     """
-        for_rotation_counting = 0
+        for_rotation_counting = 0 # for 문이 회전하는 횟수를 계산해 게시글 수 확인 후 변수에 담아 테이블과 함께 게시판 html에 전달
         for (id, number, title, date) in cur:
             for_rotation_counting +=1
             result += """
@@ -78,6 +78,7 @@ def board_home():
                         </tr>
                            
                         """.format(id, number, title, date, number)
+            # 글 제목에 링크를 걸어 해당 글을 화면 이동
 
         result += "</table>"
     except mariadb.Error as e:
@@ -88,7 +89,7 @@ def board_home():
 
     return render_template("/community/board_home.html", content = result, content1 = for_rotation_counting)
 
-@app.route('/community/board_home_search', methods = ["GET"])
+@app.route('/community/board_home_search', methods = ["GET"]) # 게시판 홈에서 검색어를 GET방식으로 전달 받아 DB에서 값 수신
 def search_doc():
 
     search_text_val = request.args.get("search_text")
@@ -138,84 +139,107 @@ def search_doc():
         if conn:
             conn.close()
     return render_template("/community/board_home_search.html", content = result, content1 = for_rotation_counting)
+    #DB에서 가져온 값을 자동 생성 표에 넣고 이를 담은 변수와 for문의 회전 횟수를 담은 변수를 함께 위 경로에 렌더링
     
-
-@app.route('/community/watch_doc', methods = ["POST"])
-def send_doc():
-    title = request.form["title"]
-    contents = request.form["contents"]
-    post_file = request.form["post_file"]
-
-    a_title = request.form["amend_title"]
-    a_contents = request.form["contents"]
-    a_post_file = request.form["file"]
-    a_p_number = request.form["p_number"]
-
-
-    if title and contents and post_file:
-        result = ""
-
-        try:
-            sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
-            # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
-
-            
-            conn = get_conn()
-            cur = conn.cursor()
-            cur.execute(sql)
-            conn.commit()
-
-        except mariadb.Error as e:
-            result = "사용자 없음."
-            sys.exit(1)
-        except TypeError as e:
-            print(e)
-        finally:
-            if conn:
-                conn.close()
-
-        return render_template("/community/watch_doc.html")
-
-    elif a_title and a_contents and a_post_file and a_p_number:
-        result = ""
-
-        try:
-            sql = """
-                UPDATE LIBRARY.POST as p set TITLE ="{}", CONTENTS ="{}",
-                POST_FILE ="{}", MODIFY_DATE = now()
-                WHERE p.NUMBER = {};
-                """.format(a_title, a_contents, a_post_file, a_p_number)
-
-            conn = get_conn()
-            cur = conn.cursor()
-            cur.execute(sql)
-            conn.commit()
-
-            sql1 = """
-                    SELECT p.NUMBER, p.TITLE , p.CONTENTS, m.ID , p.DATE, p.MODIFY_DATE 
-                    FROM LIBRARY.POST as p
-                    left join LIBRARY.MEMBER as m
-                    on p.MEMBER_NUMBER = m.NUMBER
-                    where p.NUMBER ={};
-                """.format(a_p_number)
-
-            cur = conn.cursor()
-            cur.execute(sql1)
-
-            result = ""
-
-            for (number, title, contents, id, date, modify_date) in cur:
-                result += """
-                            여기 작성                
-                        
-                        """
-                
+#현재, 글을 작성하고 저장한 이후 또는 글을 수정한 이후 글 보기 페이지에 해당 변경 사항 렌더링 기능 구현 중-400에러 해결해야 함.
+#form에서 전송하는 파라미터 이름의 목록과 flask에서 request.form['파라미터_이름']으로 받아들이는 목록이 일치하는지 확인.
+#
+# @app.route('/community/watch_doc', methods = ["POST"])
+#
+# def send_doc():
+#     title = request.form["title"]
+#     contents = request.form["contents"]
+#     post_file = request.form["post_file"]
+#
+#     a_title = request.form["amend_title"]
+#     a_contents = request.form["amend_contents"]
+#     a_post_file = request.form["amend_file"]
+#     a_post_number = request.form["amend_p_number"]
+#
+#     print(a_title)
+#     print(a_contents)
+#     print(a_post_file)
+#     print(a_post_number)
+#
+#     if title and contents and post_file:
+#         result = ""
+#
+#         try:
+#             sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
+#             # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
+#
+#
+#             conn = get_conn()
+#             cur = conn.cursor()
+#             cur.execute(sql)
+#             conn.commit()
+#
+#         except mariadb.Error as e:
+#             result = "사용자 없음."
+#             sys.exit(1)
+#         except TypeError as e:
+#             print(e)
+#         finally:
+#             if conn:
+#                 conn.close()
+#
+#         return render_template("/community/watch_doc.html")
+#
+#     elif a_title and a_contents and a_post_file and a_post_number:
+#         result = ""
+#
+#         try:
+#             sql = """
+#                 UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}",
+#                 POST_FILE ="{2}", MODIFY_DATE = now()
+#                 WHERE p.NUMBER = {3};
+#                 """.format(a_title, a_contents, a_post_file, a_post_number)
+#
+#             conn = get_conn()
+#             cur = conn.cursor()
+#             cur.execute(sql)
+#             conn.commit()
+#
+#             sql1 = """
+#                     SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
+#                     FROM LIBRARY.POST as p
+#                     left join LIBRARY.MEMBER as m
+#                     on p.MEMBER_NUMBER = m.NUMBER
+#                     where p.NUMBER ={};
+#                 """.format(a_post_number)
+#
+#             cur = conn.cursor()
+#             cur.execute(sql1)
+#
+#             result = ""
+#
+#             for (title, contents, id, file, date, modify_date, number) in cur:
+#                 result += """
+#                             <h3>{0}</h3>
+#                                 <div class="container">
+#                                     <p>{1}</p>
+#                                     <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+#                                     <input class="float-right" type="button" value="삭제">
+#                                     <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+#                                     <button class="float-right" disabled><span style="color: white;">작성자 :  {2} 작성일시 : {4} 최종 수정 : {5}</span></button>
+#                                 </div>
+#
+#                         """.format(title, contents, id, file, date, modify_date, number)
+#
+#         except mariadb.Error as e:
+#             print(e)
+#         finally:
+#             if conn:
+#                 conn.close()
+#
+#         return render_template("/community/watch_doc.html", content= result)
 
 
 
 
 
 @app.route('/community/watch_doc', methods = ["GET"])
+#게시판 홈에서 사용자가 클릭한 글 제목을 GET 방식으로 watch_doc에서 전달 받아 DB 연산 진행
 def watch_doc():
     post_number = request.args.get("p.number")
 
@@ -265,26 +289,30 @@ def watch_doc():
         if conn:
             conn.close()
 
-    return render_template("/community/watch_doc.html", content_list= result)
+    return render_template("/community/watch_doc.html", content= result)
+    #연산한 결과를 watch_doc.html에서 전달 받아 이를 출력
 
 
 
     
-@app.route('/community/write_doc')
+@app.route('/community/write_doc')#사용자가 글 작성 메뉴를 클릭하면 이동되는 화면
 def write_doc():
     author = session['id']
-    return render_template("/community/write_doc.html", content = author)
+    return render_template("/community/write_doc.html", author = author)
 
 
 # @app.route('/community/watch_doc')
 # def add_comment():
 #     author = session['id']
-#     return render_template("/community/watch_doc.html", content = author)
+#     return render_template("/community/watch_doc.html", author = author)
 
 @app.route('/community/amend_doc', methods = ['GET'])
+# 사용자가 수정을 클릭하면 실행되는 함수, 글 번호를 GET방식으로 전달받는다.
 def amend_doc():
     author = session['id']
     p_number = request.args.get("p_number")
+
+    # 해당 경로에서 각기 다른 인자값을 전달 받아 DB 연산을 수행하는 용례
 
     # tag = request.args.get("tag")
     # ajax = request.args.get("ajax")
@@ -292,13 +320,13 @@ def amend_doc():
     #     ~~~
     # elif ajax:
     #     ~~~~
-    #
 
     sql = """ 
         SELECT p.title, p.CONTENTS, p.post_file, p.NUMBER FROM LIBRARY.POST as p
         WHERE p.NUMBER = {};
         """.format(p_number)
     result = ""
+    #수정에 필요한 모든 값들을 쿼리문으로 불러옴.
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -307,17 +335,14 @@ def amend_doc():
 
         for (title, contents, file, p_number) in cur:
             result += """ 
-                        <form action="/community/watch_doc" method="POST">
-                            <div>
-                                <p>제목 : </p>
-                                <input tyle="text" value="{0}" name= "amend_title">
-                            </div>
+                        <form action="/community/watch_doc?amend_p_number={3}" method="POST">
+                            <p>제목 : </p>
+                            <input type="text" value="{0}" name= "amend_title">
                             <br>
-                            <textarea name="contents" value=>{1}</textarea>
+                            <textarea name="amend_contents">{1}</textarea>
                             <br>
-                            <input type="hidden" name="p_number" value="{3}">
                             <div>
-                                <p>파일첨부 :</p><input type="file" onclick="" name="file" value="{2}">
+                                <p>파일첨부 :</p><input type="file" onclick="" name="amend_file" value="{2}">
                                 <input type="submit" value="저장" onclick="">
                             </div>
                         </form>
@@ -328,7 +353,8 @@ def amend_doc():
         if conn:
             conn.close()
 
-    return render_template("/community/watch_doc_amend.html", content = author, content_amend = result)
+    return render_template("/community/watch_doc_amend.html", author = author, content_amend = result)
+    #실행결과를 watch_doc_amend.html에 변수에 담아 전달
 
 
 
