@@ -18,7 +18,7 @@ article {
     width: 500px;
     height: 500px;
     position: relative;
-    top:80px;
+    top:60px;
     left:140px;
    
 }
@@ -38,6 +38,14 @@ select {
     top:30px;
 }
 
+.id_box {
+    display: block;
+    height: 68px;
+}
+.box1 {
+    width: 390px;
+}
+
 .box1, .box2 {
     float: left;
     text-decoration: none;
@@ -47,8 +55,24 @@ select {
     list-style-type: none;
     padding:10px 20px 10px 20px;
     font-weight: bold;
+    margin: 5px;
     width:348px;
-}   
+}
+.box1 {
+    position: relative;
+    left: -130px;
+}
+.box2 {
+    position:relative;
+    left: 10px;
+}
+
+#id_ck {
+    float: right;
+    display: block;
+    font-weight: bold;
+    border-radius: 10%;
+}
 #gender{
     text-align: center;
     display: inline-block;
@@ -58,8 +82,10 @@ select {
     display: block;
     clear: both;
     position: relative;
-    top: -30px;
-    left: 893px;
+    width: 250px;
+    margin: 0 auto;
+    top: 30px;
+    left: -50px;
 }
 #signup2, #canceal {
     float: left;

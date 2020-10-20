@@ -13,13 +13,13 @@ article {
     width: 500px;
     height: 500px;
     position: relative;
-    top:80px;
-    left:150px;
+    top:40px;
+    left:10px;
 }
 
 input:not(.box3) {
     text-align: center;
-    height: 20px;
+    height: 25px;
 }
 select {
     height: 25px;
@@ -44,13 +44,18 @@ select {
     padding:10px 20px 10px 20px;
     font-weight: bold ;
     width: 300px;
-}   
+}
+ .input_box {
+    text-align: left;
+    font-weight:bold;
+    border-width: 2px;
+}
+
 
 .box3 {
     clear: both;
     position: relative;
-    top: 15px;
-    left: 30px;
+    left: 180px;
 }
 #confirm, #modify, #canceal {
     float: left;
