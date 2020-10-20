@@ -145,37 +145,86 @@ def send_doc():
     title = request.form["title"]
     contents = request.form["contents"]
     post_file = request.form["post_file"]
-    result = ""
 
-    try:
-        sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
-        # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
+    a_title = request.form["amend_title"]
+    a_contents = request.form["contents"]
+    a_post_file = request.form["file"]
+    a_p_number = request.form["p_number"]
 
-        
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute(sql)
-        conn.commit()
 
-    except mariadb.Error as e:
-        result = "사용자 없음."
-        sys.exit(1)
-    except TypeError as e:
-        print(e)
-    finally:
-        if conn:
-            conn.close()
+    if title and contents and post_file:
+        result = ""
 
-    return render_template("/community/watch_doc.html")
+        try:
+            sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
+            # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
+
+            
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute(sql)
+            conn.commit()
+
+        except mariadb.Error as e:
+            result = "사용자 없음."
+            sys.exit(1)
+        except TypeError as e:
+            print(e)
+        finally:
+            if conn:
+                conn.close()
+
+        return render_template("/community/watch_doc.html")
+
+    elif a_title and a_contents and a_post_file and a_p_number:
+        result = ""
+
+        try:
+            sql = """
+                UPDATE LIBRARY.POST as p set TITLE ="{}", CONTENTS ="{}",
+                POST_FILE ="{}", MODIFY_DATE = now()
+                WHERE p.NUMBER = {};
+                """.format(a_title, a_contents, a_post_file, a_p_number)
+
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute(sql)
+            conn.commit()
+
+            sql1 = """
+                    SELECT p.NUMBER, p.TITLE , p.CONTENTS, m.ID , p.DATE, p.MODIFY_DATE 
+                    FROM LIBRARY.POST as p
+                    left join LIBRARY.MEMBER as m
+                    on p.MEMBER_NUMBER = m.NUMBER
+                    where p.NUMBER ={};
+                """.format(a_p_number)
+
+            cur = conn.cursor()
+            cur.execute(sql1)
+
+            result = ""
+
+            for (number, title, contents, id, date, modify_date) in cur:
+                result += """
+                            여기 작성                
+                        
+                        """
+                
+
+
+
+
 
 @app.route('/community/watch_doc', methods = ["GET"])
 def watch_doc():
     post_number = request.args.get("p.number")
+
+
     result = ""
     try:
         sql = """
             SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
-            p.MODIFY_DATE FROM LIBRARY.POST as p
+            p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
             left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
             WHERE p.NUMBER = {};
             """.format(post_number)
@@ -185,7 +234,7 @@ def watch_doc():
         cur.execute(sql)
 
 
-        for (title, contents, id, file, date, modify_date) in cur:
+        for (title, contents, file, id, date, modify_date,p_number) in cur:
             if modify_date == None:
                 modify_date = "수정 이력 없음"
 
@@ -193,30 +242,32 @@ def watch_doc():
                         <h3>{0}</h3>
                         <div class="container">
                             <p>{1}</p>
-                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                            
+                            <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                            
                             <input class="float-right" type="button" value="삭제">
-                            <input class="float-right" type="button" value="수정">
-                            <button class="float-right" disabled><span style="color: white;">작성자 :  {2} 작성일시 : {4} 최종 수정 : {5}</span></button>  
+                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                            <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>  
                         </div>
-                        """.format(title, contents, id, file, date, modify_date)
+                        """.format(title, contents, file, id, date, modify_date, p_number)
             else:
-                result += """
-                        <h3>{0}</h3>
-                        <div class="container">
-                            <p>{1}</p>
-                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                            
-                            <input class="float-right" type="button" value="삭제">
-                            <input class="float-right" type="button" value="수정">
-                            <button class="float-right" disabled><span style="color: white;">작성자 :  {2} 작성일시 : {4} 최종 수정 : {5}</span></button>  
-                        </div>
-                        """.format(title, contents, id, file, date, modify_date)
+                result +=  """
+                            <h3>{0}</h3>
+                            <div class="container">
+                                <p>{1}</p>
+                                <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                            
+                                <input class="float-right" type="button" value="삭제">
+                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                <button class="float-right" disabled><span style="color: white;">작성자 :  {3} 작성일시 : {4} 최종 수정 : {5}</span></button>  
+                            </div>
+                        """.format(title, contents, file, id, date, modify_date, p_number)
     except mariadb.Error as e:
         print(e)
     finally:
         if conn:
             conn.close()
-            
+
     return render_template("/community/watch_doc.html", content_list= result)
+
+
 
     
 @app.route('/community/write_doc')
@@ -229,6 +280,55 @@ def write_doc():
 # def add_comment():
 #     author = session['id']
 #     return render_template("/community/watch_doc.html", content = author)
+
+@app.route('/community/amend_doc', methods = ['GET'])
+def amend_doc():
+    author = session['id']
+    p_number = request.args.get("p_number")
+
+    # tag = request.args.get("tag")
+    # ajax = request.args.get("ajax")
+    # if tag:
+    #     ~~~
+    # elif ajax:
+    #     ~~~~
+    #
+
+    sql = """ 
+        SELECT p.title, p.CONTENTS, p.post_file, p.NUMBER FROM LIBRARY.POST as p
+        WHERE p.NUMBER = {};
+        """.format(p_number)
+    result = ""
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+
+
+        for (title, contents, file, p_number) in cur:
+            result += """ 
+                        <form action="/community/watch_doc" method="POST">
+                            <div>
+                                <p>제목 : </p>
+                                <input tyle="text" value="{0}" name= "amend_title">
+                            </div>
+                            <br>
+                            <textarea name="contents" value=>{1}</textarea>
+                            <br>
+                            <input type="hidden" name="p_number" value="{3}">
+                            <div>
+                                <p>파일첨부 :</p><input type="file" onclick="" name="file" value="{2}">
+                                <input type="submit" value="저장" onclick="">
+                            </div>
+                        </form>
+                    """.format(title, contents, file, p_number)
+    except mariadb.Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+
+    return render_template("/community/watch_doc_amend.html", content = author, content_amend = result)
 
 
 
