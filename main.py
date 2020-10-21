@@ -361,7 +361,8 @@ def board_home():
 
     return render_template("/community/board_home.html", content=result, content1=for_rotation_counting)
 
-@app.route('/community/board_home_search', methods = ["GET"]) # 게시판 홈에서 검색어를 GET방식으로 전달 받아 DB에서 값 수신
+# 게시판 홈에서 검색어를 GET방식으로 전달 받아 DB에서 값 수신
+@app.route('/community/board_home_search', methods = ["GET"])
 def search_doc():
     search_text_val = request.args.get("search_text")
 
@@ -412,8 +413,6 @@ def search_doc():
     #DB에서 가져온 값을 자동 생성 표에 넣고 이를 담은 변수와 for문의 회전 횟수를 담은 변수를 함께 위 경로에 렌더링
 
 
-#현재, 글을 작성하고 저장한 이후 또는 글을 수정한 이후 글 보기 페이지에 해당 변경 사항 렌더링 기능 구현 중-400에러 해결해야 함.
-#form에서 전송하는 파라미터 이름의 목록과 flask에서 request.form['파라미터_이름']으로 받아들이는 목록이 일치하는지 확인.
 @app.route('/community/watch_doc', methods = ["POST"])
 def send_doc():
 
@@ -433,33 +432,45 @@ def send_doc():
             conn.commit()
 
             sql1 = """ 
-                    SELECT p.TITLE, p.CONTENTS, m.ID , m.`NUMBER`, p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
+                    SELECT p.TITLE, p.CONTENTS, m.ID , p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
                     from LIBRARY.POST as p
                     left join LIBRARY.MEMBER as m
                     on p.MEMBER_NUMBER = m.NUMBER 
-                    WHERE  p.NUMBER > (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
-                    
+                    WHERE  p.NUMBER IN (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
                 """.format(title, contents)
             cur1 = conn.cursor()
             cur1.execute(sql1)
 
-            # for문부터 작성
-
-            #for () in cur1:
-
-
-
+            result = ""
+            for (title, contents, id, post_file, date, modify_date, p_number) in cur1:
+                modify_date = "수정이력 없음"
+                result +="""
+                        <h3>{0}</h3>
+                        <div class="container">
+                            <p>{1}</p>
+                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                        </div>
+                        <script>
+                            function delete_check_btn(){{
+                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                window.location = '/community/delete_doc?p_number={6}';
+                              }} else{{
+                                return false;
+                              }}
+                           }}
+                        </script>
+                        """.format(title, contents, id, post_file, date, modify_date, p_number)
 
         except mariadb.Error as e:
-            result = "사용자 없음."
-            sys.exit(1)
-        except TypeError as e:
             print(e)
         finally:
             if conn:
                 conn.close()
 
-        return render_template("/community/watch_doc.html")
+        return render_template("/community/watch_doc.html", content= result)
 
     except:
 
@@ -496,14 +507,23 @@ def send_doc():
 
             for (title, contents, id, file, date, modify_date, number) in cur1:
                 result += """
-                            <h3>{0}</h3>
-                                <div class="container">
-                                    <p>{1}</p>
-                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
-                                    <input class="float-right" type="button" value="삭제">
-                                    <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                                    <button class="float-right" disabled><span style="color: white;">작성자 :  {2} 작성일시 : {4} 최종 수정 : {5}</span></button>
-                                </div>
+                        <h3>{0}</h3>
+                        <div class="container">
+                            <p>{1}</p>
+                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                        </div>
+                        <script>
+                            function delete_check_btn(){{
+                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                window.location = '/community/delete_doc?p_number={6}';
+                              }} else{{
+                                return false;
+                              }}
+                           }}
+                        </script>
                         """.format(title, contents, id, file, date, modify_date, number)
 
         except mariadb.Error as e:
@@ -516,7 +536,6 @@ def send_doc():
 
 
 @app.route('/community/watch_doc', methods = ["GET"])
-#게시판 홈에서 사용자가 클릭한 글 제목을 GET 방식으로 watch_doc에서 전달 받아 DB 연산 진행
 def watch_doc():
     post_number = request.args.get("p.number")
     result = ""
@@ -535,28 +554,46 @@ def watch_doc():
 
         for (title, contents, file, id, date, modify_date,p_number) in cur:
             if modify_date == None:
-                modify_date = "수정 이력 없음"
+                modify_date = "수정 내역 없음"
 
                 result += """
                         <h3>{0}</h3>
                         <div class="container">
                             <p>{1}</p>
                             <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                            <input class="float-right" type="button" value="삭제">
+                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                             <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                             <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
                         </div>
+                        <script>
+                            function delete_check_btn(){{
+                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                window.location = '/community/delete_doc?p_number={6}';
+                              }} else{{
+                                return false;
+                              }}
+                           }}
+                        </script>
                         """.format(title, contents, file, id, date, modify_date, p_number)
             else:
-                result +=  """
+                result += """
                             <h3>{0}</h3>
-                            <div class="container">
-                                <p>{1}</p>
-                                <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                            
-                                <input class="float-right" type="button" value="삭제">
-                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                                <button class="float-right" disabled><span style="color: white;">작성자 :  {3} 작성일시 : {4} 최종 수정 : {5}</span></button>  
-                            </div>
+                        <div class="container">
+                            <p>{1}</p>
+                            <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                            <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                        </div>
+                        <script>
+                            function delete_check_btn(){{
+                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                window.location = '/community/delete_doc?p_number={6}';
+                              }} else{{
+                                return false;
+                              }}
+                           }}
+                        </script>
                         """.format(title, contents, file, id, date, modify_date, p_number)
     except mariadb.Error as e:
         print(e)
@@ -630,6 +667,63 @@ def amend_doc():
     return render_template("/community/watch_doc_amend.html", author = author, content_amend = result)
     #실행결과를 watch_doc_amend.html에 변수에 담아 전달
 
+@app.route('/community/delete_doc', methods = ["GET"])
+def delete_query():
+    p_number = request.args.get("p_number")
+    try:
+        sql = """
+            DELETE FROM LIBRARY.POST where NUMBER = {} ;
+           """.format(p_number)
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+        conn.commit()
+
+        sql = """
+                SELECT m.ID, p.NUMBER, p.title, p.date
+                FROM LIBRARY.POST as p
+                LEFT join LIBRARY.MEMBER as m
+                on p.MEMBER_NUMBER = m.NUMBER ORDER by p.NUMBER desc;
+                """
+        result = ""
+
+        cur = conn.cursor()
+        cur.execute(sql)
+
+        result += """<table>
+                            <thead>
+                                <tr>
+                                    <th>번호</th>
+                                    <th>제목</th>
+                                    <th>글쓴이</th>
+                                    <th>작성일시</th>
+                                </tr>
+                            </thead>
+                        """
+        for_rotation_counting = 0  # for 문이 회전하는 횟수를 계산해 게시글 수 확인 후 변수에 담아 테이블과 함께 게시판 html에 전달
+        for (id, number, title, date) in cur:
+            for_rotation_counting += 1
+            result += """
+                            <tr>
+                                <th>{1}</th>
+                                <th><a href="/community/watch_doc?p.number={4}">{2}</a></th> 
+                                <th>{0}</th>
+                                <th>{3}</th>
+                            </tr>
+
+                            """.format(id, number, title, date, number)
+            # 글 제목에 링크를 걸어 해당 글을 화면 이동
+
+        result += "</table>"
+
+
+    except mariadb.Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+
+    return render_template("/community/board_home.html", content=result, content1=for_rotation_counting)
 
 @app.route('/books')
 def books():
