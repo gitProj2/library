@@ -1,0 +1,76 @@
+li {
+    padding:5px;
+}
+
+section {
+    margin: 0 auto;
+    width: 500px;
+    height: auto;
+    position: relative;
+    top: 70px;
+}
+article {
+    margin: 0 auto;
+    width: 500px;
+    height: 500px;
+    position: relative;
+    top:40px;
+    left:10px;
+}
+
+input:not(.box3) {
+    text-align: center;
+    height: 25px;
+}
+select {
+    height: 25px;
+}
+
+.title {
+    float: left;
+    margin:20px;
+    width: 100px;
+    height: 100px;
+    top:30px;
+}
+.signup{
+    text-align: center;
+}
+.box1, .box2 {
+    float: left;
+    text-decoration: none;
+    border-width: 1px;
+    border-style: solid;
+    list-style-type: none;
+    padding:10px 20px 10px 20px;
+    font-weight: bold ;
+    width: 300px;
+}
+ .input_box {
+    text-align: left;
+    font-weight:bold;
+    border-width: 2px;
+}
+
+
+.box3 {
+    clear: both;
+    position: relative;
+    left: 180px;
+}
+#confirm, #modify, #canceal {
+    float: left;
+    margin: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 10px;
+    vertical-align: bottom;
+    width: 100px;
+    height: 30px;
+    border-width: 2px;
+    cursor: pointer;    
+}
+#confirm {
+    background-color: lightblue;
+}
