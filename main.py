@@ -140,7 +140,101 @@ def search_doc():
             conn.close()
     return render_template("/community/board_home_search.html", content = result, content1 = for_rotation_counting)
     #DB에서 가져온 값을 자동 생성 표에 넣고 이를 담은 변수와 for문의 회전 횟수를 담은 변수를 함께 위 경로에 렌더링
-    
+
+
+#현재, 글을 작성하고 저장한 이후 또는 글을 수정한 이후 글 보기 페이지에 해당 변경 사항 렌더링 기능 구현 중-400에러 해결해야 함.
+#form에서 전송하는 파라미터 이름의 목록과 flask에서 request.form['파라미터_이름']으로 받아들이는 목록이 일치하는지 확인.
+@app.route('/community/watch_doc', methods = ["POST"])
+def send_doc():
+
+    try:
+        title = request.form["title"]
+        contents = request.form["contents"]
+        post_file = request.form["post_file"]
+
+        try:
+            sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
+            # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
+
+
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute(sql)
+            conn.commit()
+
+            sql1 = "SELECT number FROM LIBRARY.POST as p where p.TITLE = {};".format(contents)
+            cur1 = conn.cursor()
+            cur1.execute(sql1)
+            # 서브쿼리문 이용
+
+
+
+        except mariadb.Error as e:
+            result = "사용자 없음."
+            sys.exit(1)
+        except TypeError as e:
+            print(e)
+        finally:
+            if conn:
+                conn.close()
+
+        return render_template("/community/watch_doc.html")
+
+    except:
+
+        amend_title = request.form["amend_title"]
+        amend_contents = request.form["amend_contents"]
+        amend_post_file = request.form["amend_file"]
+        amend_post_number = request.form["amend_p_number"]
+
+        result = ""
+
+        try:
+            sql = """
+                UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}",
+                POST_FILE ="{2}", MODIFY_DATE = now()
+                WHERE p.NUMBER = {3};
+                """.format(amend_title, amend_contents, amend_post_file, amend_post_number)
+
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute(sql)
+            conn.commit()
+
+            sql1 = """
+                    SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
+                    FROM LIBRARY.POST as p
+                    left join LIBRARY.MEMBER as m
+                    on p.MEMBER_NUMBER = m.NUMBER
+                    where p.NUMBER ={};
+                """.format(amend_post_number)
+
+            conn1 = get_conn()
+            cur1 = conn1.cursor()
+            cur1.execute(sql1)
+
+            for (title, contents, id, file, date, modify_date, number) in cur1:
+                result += """
+                            <h3>{0}</h3>
+                                <div class="container">
+                                    <p>{1}</p>
+                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <input class="float-right" type="button" value="삭제">
+                                    <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                    <button class="float-right" disabled><span style="color: white;">작성자 :  {2} 작성일시 : {4} 최종 수정 : {5}</span></button>
+                                </div>
+
+                        """.format(title, contents, id, file, date, modify_date, number)
+
+        except mariadb.Error as e:
+            print(e)
+        finally:
+            if conn:
+                conn.close()
+
+        return render_template("/community/watch_doc.html", content= result)
+
+
 @app.route('/community/watch_doc', methods = ["GET"])
 #게시판 홈에서 사용자가 클릭한 글 제목을 GET 방식으로 watch_doc에서 전달 받아 DB 연산 진행
 def watch_doc():
@@ -238,14 +332,15 @@ def amend_doc():
 
         for (title, contents, file, p_number) in cur:
             result += """ 
-                        <form action="/community/watch_doc?amend_p_number={3}" method="POST">
+                        <form action="/community/watch_doc" method="POST">
                             <p>제목 : </p>
-                            <input type="text" value="{0}" name= "amend_title">
+                            <input type="text" name= "amend_title" placeholder="{0}">
                             <br>
-                            <textarea name="amend_contents">{1}</textarea>
+                            <textarea rows="30" name="amend_contents">{1}</textarea>
+                            <input type="hidden" name="amend_p_number" value="{3}">
                             <br>
                             <div>
-                                <p>파일첨부 :</p><input type="file" onclick="" name="amend_file" value="{2}">
+                                <p>파일첨부 :</p><input type="file" onclick="" name="amend_file">
                                 <input type="submit" value="저장" onclick="">
                             </div>
                         </form>
