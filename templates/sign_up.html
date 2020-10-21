@@ -1,47 +1,7 @@
+<!--회원가입 화면-->
 <link rel="stylesheet" href="../static/css/signupcss.css">
 {% extends "base.html" %}
 {% block section %}
-
-<script>
-    function chk() {
-        var id = document.f1.id;
-        var idStr = id.value;
-        if(idSrt ==""){
-            alert("ID를 입력하시오.");
-
-        var pw = document.f1.pw;
-        var pwStr = pw.value;
-        var pwLen = pwStr.lenth;
-        if(pwStr == "") {
-            alert("패스워드를 입력하시오");
-        }else if(pwLen < 5) {
-            alert("5자 이상 입력하시오");
-        }
-
-        var pw2 = document.f1.pw2;
-        var pw2Str = pw2.value;
-        var pw2Len = pw2Str.length;
-        if(pw2Str == "") {
-            alert("패스워드 확인을 입력하시오");
-        }else if (pw2Len <5) {
-            alert("5자 이상 입력하시오");
-        }else if (pw2Str != pwStr) {
-            alert("패스워드가 다릅니다. 다시 입력해주세요.")
-        }
-
-        var email = document.f1.email;
-        var emailStr = email.value;
-        var pos1 = emailStr.indexOf('@');
-        var pos2 = emailStr.indexOf('.com');
-        var pos3 = emailStr.indexOf('.net');
-        if(emailStr ==""){
-            alert("이메일을 입력하시오");
-        }else if (pos1 == -1) {
-            alert("@을 입력해주세요");
-        }else if (pos2 == -1 && pos3 == -1) {
-            alert("Email 형식으로 입력해주세요");
-     }
-</script>
 
     <section>
         <div class="title">
@@ -53,31 +13,37 @@
         <div>
             <ul class="box1">
                 <div class="id_box">
-                    <li>아이디 &nbsp; <input type="text" name="id" style="float:right;" value="abcde" required></li>
+<!--                 아이디 중복 확인 기능은 아직 없음-->
+                    <li>아이디 &nbsp; <input type="text" name="id" id="id" style="float:right;" required></li>
+                    <div class="check_font" id="id_check"></div>
                     <li><input type="button" id="id_ck" value="ID 중복확인" onclick="location.href='#'">
                 </div>
-                <li>비밀번호 &nbsp; <input type="password" name="pw" style="float:right;" value="aa7531" placeholder="영문, 숫자 혼합 5자 이상" required></li>
-                <li>비밀번호 확인 &nbsp; <input type="password" name="pw2" style="float:right , margin-left 20px"; value="aa7531" placeholder="영문, 숫자 혼합 5자 이상" required ></li>
+
+<!--                비밀번호와 비밀번호 확인의 동일성 여부 판단 기능은 아직 없음-->
+                <li>비밀번호 &nbsp; <input type="password" name="pw" style="float:right;" required></li>
+                <li>비밀번호 확인 &nbsp; <input type="password" name="pw2" style="float:right , margin-left 20px"; required ></li>
             </ul>
         </div>
 
         <div>   
             <ul class="box2">
-                <li>이름 &nbsp; <input type="text" name="name" value="이지은" style="float:right;" autofocus required></li>
+                <li>이름 &nbsp; <input type="text" name="name" style="float:right;" autofocus required></li>
                 <li>성별 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <div id="gender">
                     <label><input type="radio" name="gender" value="남">남</label>
-                    <label><input type="radio" name="gender" value="여" checked="checked">여</label>
+                    <label><input type="radio" name="gender" value="여">여</label>
                     </div>
                 </li>
                 <tr>
+<!--                생년월일 기본값으로 2020년 01월 01일 지정-->
                     <th>생년월일 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </th>
                     <td>
                         <input type="date" name="birthday" value="2020-01-01" style="width:175px;" class="inBorder" />
                      </td>
                 </tr>
-                <li>연락처 &nbsp; <input type="text" name="phone" style="float:right;" value="010-000-0000" placeholder="010-0000-0000" autofocus required></li>
-                <li>이메일 &nbsp; <input type="text" name="email" style="float:right;" value="eee@eee.eee" placeholder="aaa@aaa.aaa" autofocus required></li>
+<!--                연락처와 이메일은 placeholder로 입력형식 예시를 나타내었으나 형식 일치여부 판단 기능은 아직 없음-->
+                <li>연락처 &nbsp; <input type="text" name="phone" style="float:right;" placeholder="010-0000-0000" autofocus required></li>
+                <li>이메일 &nbsp; <input type="text" name="email" style="float:right;" placeholder="aaa@aaa.aaa" autofocus required></li>
             </ul>
         </div>
 

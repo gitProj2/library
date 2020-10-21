@@ -9,7 +9,6 @@ header{
     background-color: white;
     position: relative;
 }
-
 /*
 #logo:hover {
     width:400px;
@@ -36,6 +35,10 @@ header{
 #top_menu a{
     font-size: small;
     color: gray;
+}
+
+section {
+    margin-top: 30px;
 }
 
 nav{

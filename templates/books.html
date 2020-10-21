@@ -1,19 +1,12 @@
 <link rel="stylesheet" href="../static/css/books.css">
+<script type="text/javascript" src="../static/js/books.js"></script>
 {% extends "base.html" %}
 {% block section %}
  
       <section class="main">
         <aside>
           <ul class="aside__menu">
-            <li><h4 href="#">전체보기</h4></li>
-    
-              <li><a href="#"></a></li>
-              <li><a href="#">C</a></li>
-              <li><a href="#">C++</a></li>
-              <li><a href="#">C#</a></li>
-              <li><a href="#">Java</a></li>
-              <li><a href="#">JavaScript</a></li>
-            
+            {{ tag | safe }}
           </ul>
         </aside>
         <section class="books">
@@ -21,12 +14,13 @@
             {{ content | safe }}
           </section>
           <section class="book__search">
-            <select name="search">
-              <option value="">글쓴이</option>
-              <option value="">제목</option>
-            </select>
-            <input type="text">
-            <button>검색</button>
+            <form action="/books" method="get">
+              <select name="search">
+                <option value="">제목</option>
+              </select>
+              <input type="text" name="title">
+              <button type="submit">검색</button>
+            </form>
           </section>
         </section>
       </section>

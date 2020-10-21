@@ -6,6 +6,10 @@ section textarea{
     
 }
 
+section h1 {
+    text-align: center;
+}
+
 section div p{
     display: inline;
 }
@@ -16,7 +20,9 @@ section div input{
 }
 
 .div{
-    display: inline;
+    display: inline-block;
+    width: 100%;
+    margin-top: 5px;
 }
 
 .input { 

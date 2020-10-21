@@ -1,10 +1,11 @@
 * {
     box-sizing: border-box;
-    
 }
+
 li {
     padding:5px;
 }
+
 section {
     margin: 0 auto;
     width: 500px;
@@ -12,6 +13,7 @@ section {
     position: relative;
     top: 100px;
 }
+
 input {
     text-align: center;
     height: 25px;
@@ -35,7 +37,8 @@ input {
     padding:20px 30px;
     font-weight: bold;
     top:100px;
-}   
+}
+
 .box2, #signup1 {
     float:left;
     font-weight: bold;
@@ -43,8 +46,8 @@ input {
     vertical-align: middle;
     top: 20px;
     left: -50px;
-   
 }
+
 #signup1 {
     padding: 0px 10px;
     border-radius: 10px;

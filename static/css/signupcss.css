@@ -1,10 +1,11 @@
 * {
     box-sizing: border-box;
-    
 }
+
 li {
     padding:5px;
 }
+
 section {
     margin: 0 auto;
     width: 500px;
@@ -13,6 +14,7 @@ section {
     top: 70px;
     
 }
+
 article {
     margin: 0 auto;
     width: 500px;
@@ -20,8 +22,8 @@ article {
     position: relative;
     top:60px;
     left:140px;
-   
 }
+
 input:not(.box3) {
     text-align: center;
     height: 25px;
@@ -76,7 +78,6 @@ select {
 #gender{
     text-align: center;
     display: inline-block;
-    
 }
 .box3 {
     display: block;
