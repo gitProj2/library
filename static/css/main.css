@@ -10,11 +10,13 @@ header{
     position: relative;
 }
 
+/*
 #logo:hover {
     width:400px;
     transform:scale(1.5);
     transition: transform.5s;
 }
+*/
 
 #mainImage:hover, #mainImage2:hover {
     transform:scale(0.8);
@@ -23,7 +25,7 @@ header{
 
 #top_menu{
     position: absolute;
-    top:20px;
+    top:-5px;
     right:100px;
 }
 

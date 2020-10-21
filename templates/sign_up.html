@@ -1,90 +1,57 @@
+<!--회원가입 화면-->
 <link rel="stylesheet" href="../static/css/signupcss.css">
 {% extends "base.html" %}
 {% block section %}
- 
+
     <section>
         <div class="title">
             <h1 class="signup">회원가입</h1>
         </div>
+    </section>
+    <article>
+        <form action="/sign_up" name="f1" method="post">
         <div>
             <ul class="box1">
-                <li>아이디 &nbsp; <input type="text" id="id" style="float:right;" required></li>
-                <li>비밀번호 &nbsp; <input type="password" id="pw" style="float:right;" placeholder="영문, 숫자 혼합 5자 이상" required></li>
-                <li>비밀번호 확인 &nbsp; <input type="password" id="pw" style="float:right , margin-left 20px"; placeholder="영문, 숫자 혼합 5자 이상" required ></li>
+                <div class="id_box">
+<!--                 아이디 중복 확인 기능은 아직 없음-->
+                    <li>아이디 &nbsp; <input type="text" name="id" id="id" style="float:right;" required></li>
+                    <div class="check_font" id="id_check"></div>
+                    <li><input type="button" id="id_ck" value="ID 중복확인" onclick="location.href='#'">
+                </div>
+
+<!--                비밀번호와 비밀번호 확인의 동일성 여부 판단 기능은 아직 없음-->
+                <li>비밀번호 &nbsp; <input type="password" name="pw" style="float:right;" required></li>
+                <li>비밀번호 확인 &nbsp; <input type="password" name="pw2" style="float:right , margin-left 20px"; required ></li>
             </ul>
         </div>
-    </section>    
-    <article>    
+
         <div>   
             <ul class="box2">
-                <li>이름 &nbsp; <input type="text" id="name" style="float:right;" autofocus required></li>
-                <li>성별 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <li>이름 &nbsp; <input type="text" name="name" style="float:right;" autofocus required></li>
+                <li>성별 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <div id="gender">
-                    <label><input type="radio" name="gender" value="man">남</label>
-                    <label><input type="radio" name="gender" value="woman">여</label> 
-                    <label><input type="radio" name="gender" value="etc">기타</label>
+                    <label><input type="radio" name="gender" value="남">남</label>
+                    <label><input type="radio" name="gender" value="여">여</label>
                     </div>
                 </li>
                 <tr>
-                    <th>생년월일 &nbsp;&nbsp;&nbsp;&nbsp;  </th>
+<!--                생년월일 기본값으로 2020년 01월 01일 지정-->
+                    <th>생년월일 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </th>
                     <td>
-                        <input type="text" name="inyear" size="3" placeholder="ex)2002" class="inBorder" />년
-                        <select class="inBorder">
-                            <option value="1">1
-                            <option value="2">2
-                            <option value="3">3
-                            <option value="4">4
-                            <option value="5">5
-                            <option value="6">6
-                            <option value="7">7
-                            <option value="8">8
-                            <option value="9">9
-                            <option value="10">10
-                            <option value="11">11
-                            <option value="12">12                            
-                        </select> 월
-                        <select class="inBorder">
-                            <option value="1">1
-                            <option value="2">2
-                            <option value="3">3
-                            <option value="4">4
-                            <option value="5">5
-                            <option value="6">6
-                            <option value="7">7
-                            <option value="8">8
-                            <option value="9">9
-                            <option value="10">10
-                            <option value="11">11
-                            <option value="12">12  
-                            <option value="13">13
-                            <option value="14">14
-                            <option value="15">15
-                            <option value="16">16
-                            <option value="17">17
-                            <option value="18">18
-                            <option value="19">19
-                            <option value="20">20
-                            <option value="21">21
-                            <option value="22">22
-                            <option value="23">23
-                            <option value="24">24
-                            <option value="25">25
-                            <option value="26">26
-                            <option value="27">27
-                            <option value="28">28
-                            <option value="29">29
-                            <option value="30">30
-                            <option value="31">31
-                        </select>일
+                        <input type="date" name="birthday" value="2020-01-01" style="width:175px;" class="inBorder" />
                      </td>
                 </tr>
-                <li>연락처 &nbsp; <input type="text" id="phone" style="float:right;" placeholder="000-0000-0000" autofocus required></li>
-                <li>이메일 &nbsp; <input type="text" id="email" style="float:right;" placeholder="aaa@aaa.aaa" autofocus required></li>
+<!--                연락처와 이메일은 placeholder로 입력형식 예시를 나타내었으나 형식 일치여부 판단 기능은 아직 없음-->
+                <li>연락처 &nbsp; <input type="text" name="phone" style="float:right;" placeholder="010-0000-0000" autofocus required></li>
+                <li>이메일 &nbsp; <input type="text" name="email" style="float:right;" placeholder="aaa@aaa.aaa" autofocus required></li>
             </ul>
         </div>
-    </article>    
+
         <div class="box3">
-            <input type="submit" id="signup2" value="회원가입" a href="#">
-            <input type="button" id="canceal" value="취소" a href="#">
+            <input type="submit" id="signup2" value="회원가입" onclick="location.href='/sign_up'">
+            <input type="button" id="canceal" value="취소" onclick="location.href='/'">
         </div>
+        </form>
+    </article>
+
 {% endblock %}

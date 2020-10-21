@@ -1,3 +1,4 @@
+<!--회원가입수정 화면 -->
 <link rel="stylesheet" href="../static/css/membercss.css">
 {% extends "base.html" %}
 {% block section %}
@@ -5,81 +6,16 @@
         <div class="title" style="margin-right:30px;">
             <h1 class="signup">회원정보 수정</h1>
         </div>
-        <div>
-            <ul class="box1">
-                <li>회원번호 <input type="text" id="memnum" style="float:right;"></li>
-                <li>아이디 <input type="text" id="id" style="float:right;"></li>
-                <li>비밀번호 <input type="password" id="pw" style="float:right;"></li>
-            </ul>
-    </section>        
+    </section>
     <article>
-            <ul class="box2">
-                <li>이름 <input type="text" id="name" style="float:right;"></li>
-                <li>성별 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <label><input type="radio" name="gender" value="man">남</label>
-                    <label><input type="radio" name="gender" value="woman">여</label> 
-                    <label><input type="radio" name="gender" value="etc">기타</label>
-                </li>
-                <tr class="birth">
-                    <th>생년월일  &nbsp;&nbsp; </th>
-                    <td>
-                        <input type="text" name="inyear" size="3" placeholder="ex)2002" class="inBorder" />년&nbsp; 
-                        <select class="inBorder">
-                            <option value="1">1
-                            <option value="2">2
-                            <option value="3">3
-                            <option value="4">4
-                            <option value="5">5
-                            <option value="6">6
-                            <option value="7">7
-                            <option value="8">8
-                            <option value="9">9
-                            <option value="10">10
-                            <option value="11">11
-                            <option value="12">12                            
-                        </select> 월
-                        <select class="inBorder">
-                            <option value="1">1
-                            <option value="2">2
-                            <option value="3">3
-                            <option value="4">4
-                            <option value="5">5
-                            <option value="6">6
-                            <option value="7">7
-                            <option value="8">8
-                            <option value="9">9
-                            <option value="10">10
-                            <option value="11">11
-                            <option value="12">12  
-                            <option value="13">13
-                            <option value="14">14
-                            <option value="15">15
-                            <option value="16">16
-                            <option value="17">17
-                            <option value="18">18
-                            <option value="19">19
-                            <option value="20">20
-                            <option value="21">21
-                            <option value="22">22
-                            <option value="23">23
-                            <option value="24">24
-                            <option value="25">25
-                            <option value="26">26
-                            <option value="27">27
-                            <option value="28">28
-                            <option value="29">29
-                            <option value="30">30
-                            <option value="31">31
-                        </select> 일
-                     </td>
-                </tr>
-                <li>연락처 <input type="text" id="phone" style="float:right;"></li>
-                <li>이메일 <input type="text" id="email" style="float:right;"></li>
-            </ul>
-        </div>
-        <div class="box3">
-            <div><input type="submit" id="confirm" value="확인" a href="#"></div>
-            <div><input type="button"  id="canceal" value="취소" a href="#"></div>
-        </div>
+        <form action="/member_info" method="post">
+        {{ content | safe }}
+
+<!-- 수정한 후 확인버튼을 click 한 경우 수정된 데이터는 DB로 저장되고, main 화면으로 이동-->
+            <div class="box3">
+                <div><input type="submit" id="confirm" value="확인"  onclick="location.href='/member_info'"></div>
+                <div><input type="button"  id="canceal" value="취소"  onclick="location.href='/'"></div>
+            </div>
+        </form>
     </article>
 {% endblock %}

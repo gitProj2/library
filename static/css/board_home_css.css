@@ -1,16 +1,13 @@
 li{
     list-style: none;
-    display: inline-block;
-    margin-left :30px;
-    margin-right : 30px;
 }
  
 table{
     width: 100%;
-    border: 1px solid #222;
+    border: 1 1px solid #222;
     border-collapse: collapse;
-    border-radius: 5px;
     }
+
 thead {
     background-color: lightgray;
 }
@@ -21,7 +18,25 @@ th, td {
     font-size: 0.8em;
     text-align: center;
 }
- 
+
+/* .t-size1 {
+    width: 2%;
+}
+.t-size2 {
+    width: 50%;
+}
+.t-size3 {
+    width: 10%;
+}
+.t-size4 {
+    width: 30%;
+} */
+
+.inline_float {
+    display: inline;
+    float: right;
+    margin-left: 5px;
+}
 .inline-block {
     display: inline;
 }
@@ -34,3 +49,6 @@ input[type="text"]{
     vertical-align: top;
 }
 
+section h1 {
+    text-align: center;
+}
