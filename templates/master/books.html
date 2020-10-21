@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="../../static/css/master.css">
+<link rel="stylesheet" href="../../static/css/tmaster.css">
+<link rel="stylesheet" href="../static/css/books.css">
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+<body>
+
+<ul class="sidenav">
+  <li><a class="active" href="#관리자 페이지">관리자 페이지</a></li>
+  <li><a href="/">홈</a></li>
+  <li><a href="/master/master">회원</a></li>
+  <li><a href="/master/community">게시글</a></li>
+  <li><a href="/master/books">도서</a></li>
+</ul>
+
+<div class="content">
+  <h1 id="title2">도서</h1><img src="../../static/image/master/member.jpeg" id="member">
+<header style=margin-bottom:26px;>
+<p>도서 목록 및 대여 여부 확인하는 곳입니다.</p>
+<p>- 책 등록 & 삭제 기능은 준비중입니다 -</p>
+<input type="button" id="btn" value="책등록" />
+<input type="button" id="btn" value="삭제" />
+</header>
+
+<section> 
+{{ content | safe }}
+</section>
+</body>
+</html>
