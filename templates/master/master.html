@@ -5,6 +5,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- "excel download" -->
 </head>
 <body>
 
@@ -18,7 +19,6 @@
 </ul>
 
 <div class="content">
-  <input type="image" src="/static/image/books/c1.png" alt="책" width="100px" height="160px">
   <h1 id="title2">회원정보</h1><img src="../../static/image/master/member.jpeg" id="member">
   <p>회원들의 정보와 대출여부를 볼수 있는 곳입니다.</p>
   <p>- Excel Download 기능은 예정중 -</p>
@@ -28,16 +28,17 @@
     <thead>
         <tr>
             <th>NAME</th>
-            <th>ID</th> 
+            <th>ID</th>
             <th>PHONE</th>
             <th>EMAIL</th>
         </tr>
     </thead>
 
   {{ content | safe }}
-  </table>
-  </div>
-  
+
+</table>
+</div>
+
   <h3>개인정보 유출을 항상 조심합시다 !!</h3>
 </div>
 
