@@ -3,6 +3,7 @@
 {% block section %}
 
     <section>
+        {{alert|safe}}
         <h1>생각 나눔</h1>   
  
         <div>  
@@ -19,7 +20,7 @@
         {{content | safe}}
         <br>
  
-        <input type="button" style="float: right;" value="글 작성" onclick="location.href='/community/write_doc'">
- 
+        <input type="button" style="float: right;" value="글 작성" onclick="location.href='/community/check_login'">
+        {{content_alert | safe}}
     </section>
 {% endblock %}

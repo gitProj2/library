@@ -6,6 +6,8 @@
 <!--로그인 실패시 alert창 뜨도록 함.-->
 {{ content | safe }}
     <section>
+<!--        로그인 하지 않은 상태에서 글작성 버튼 클릭하면 넘어오는 alert 메세지 창.(이재형)-->
+        {{ alert | safe}}
         <form action="/sign_in" method="post">
         <div class="title">
             <h1 class="signup">로그인</h1>

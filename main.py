@@ -1,4 +1,4 @@
-import mariadb
+import mariadb, pymysql
 import sys, datetime
 from flask import Flask, render_template, request, session
 
@@ -18,8 +18,8 @@ def get_conn():
 @app.route('/')
 def main():
     session.clear()
-    session['id'] = 'nywogud'
-    session['number'] = 3
+    # session['id'] = 'nywogud'
+    # session['number'] = 3
 
     return render_template("/main.html")
 
@@ -140,16 +140,16 @@ def member_info():
                 <li>비밀번호 &emsp;<input type="password" name="pw" text-align="left" height="40" value="{2}" class="input_box"></li>
             </ul>
             &nbsp;
-        </div>
-        <div>
-            <ul class=\"box2\">
-                <li>이름 &emsp;&emsp;&emsp;<input type="text" name="name" height="40" value="{6}" class="input_box" ></li>
-                <li>성별 &emsp;&emsp;&emsp;<input type="text" name="gender" height="40" value="{5}" class="input_box" ></li>
-                <li>생년월일 &emsp;<input type="text" name="birthday" height="40" value="{7}" class="input_box" ></li>
-                <li>연락처 &emsp;&emsp;<input type="text" name="phone" height="40" value="{3}" class="input_box"></li>
-                <li>이메일 &emsp;&emsp;<input type="text" name="email" height="40" value="{4}" class="input_box"></li>
-            </ul>
-        </div>""".format(ID, PW, NAME, GENDER, BIRTHDAY, PHONE, EMAIL, NUMBER)
+            </div>
+            <div>
+                <ul class=\"box2\">
+                    <li>이름 &emsp;&emsp;&emsp;<input type="text" name="name" height="40" value="{6}" class="input_box" ></li>
+                    <li>성별 &emsp;&emsp;&emsp;<input type="text" name="gender" height="40" value="{5}" class="input_box" ></li>
+                    <li>생년월일 &emsp;<input type="text" name="birthday" height="40" value="{7}" class="input_box" ></li>
+                    <li>연락처 &emsp;&emsp;<input type="text" name="phone" height="40" value="{3}" class="input_box"></li>
+                    <li>이메일 &emsp;&emsp;<input type="text" name="email" height="40" value="{4}" class="input_box"></li>
+                </ul>
+            </div>""".format(ID, PW, NAME, GENDER, BIRTHDAY, PHONE, EMAIL, NUMBER)
 
     except mariadb.Error as e:
         print(e)
@@ -309,11 +309,10 @@ def master_b():
 
     return render_template("/master/books.html", content=result)
 
-
-@app.route('/community/board_home')
-## 글 작성 버튼 클릭하면 회원여부 확인 후 글 작성 페이지로 이동, 회원이 아니면 경고 메시지 띄우기- 기능 구현 전
-def board_home():
 # 데이터베이스에서 아래 값들을 불러와 보드홈에서 내림차순 테이블 구현
+@app.route('/community/board_home')
+def board_home():
+
     sql= """
         SELECT m.ID, p.NUMBER, p.title, p.date
         FROM LIBRARY.POST as p
@@ -414,126 +413,252 @@ def search_doc():
 
 
 @app.route('/community/watch_doc', methods = ["POST"])
-def send_doc():
+def send_show_doc():
 
-    try:
-        title = request.form["title"]
-        contents = request.form["contents"]
-        post_file = request.form["post_file"]
+    if 'id' in session:
 
         try:
-            sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
-            # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
+            title = request.form["title"]
+            contents = request.form["contents"]
+            post_file = request.form["post_file"]
+
+            try:
+                sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
+                # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
 
 
-            conn = get_conn()
-            cur = conn.cursor()
-            cur.execute(sql)
-            conn.commit()
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+                conn.commit()
 
-            sql1 = """ 
-                    SELECT p.TITLE, p.CONTENTS, m.ID , p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
-                    from LIBRARY.POST as p
+                sql = """
+                    SELECT m.ID from LIBRARY.POST as p
                     left join LIBRARY.MEMBER as m
                     on p.MEMBER_NUMBER = m.NUMBER 
-                    WHERE  p.NUMBER IN (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
-                """.format(title, contents)
-            cur1 = conn.cursor()
-            cur1.execute(sql1)
+                    WHERE  p.NUMBER IN 
+                    (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
+                    """.format(title, contents)
+
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+                for data in cur:
+                    break
+
+                if data[0] == session['id']:
+
+                    sql = """ 
+                            SELECT p.TITLE, p.CONTENTS, m.ID , p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
+                            from LIBRARY.POST as p
+                            left join LIBRARY.MEMBER as m
+                            on p.MEMBER_NUMBER = m.NUMBER 
+                            WHERE  p.NUMBER IN (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
+                        """.format(title, contents)
+                    cur = conn.cursor()
+                    cur.execute(sql)
+
+                    result = ""
+                    for (title, contents, id, post_file, date, modify_date, p_number) in cur:
+                        modify_date = "수정이력 없음"
+                        result +="""
+                                <h3>{0}</h3>
+                                <div class="container">
+                                    <p>{1}</p>
+                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                    <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                    <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                    <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                </div>
+                                <script>
+                                    function delete_check_btn(){{
+                                      if(confirm("정말 삭제하시겠습니까?")==true){{
+                                        window.location = '/community/delete_doc?p_number={6}';
+                                      }} else{{
+                                        return false;
+                                      }}
+                                   }}
+                                </script>
+                                """.format(title, contents, id, post_file, date, modify_date, p_number)
+
+                else:
+                    try:
+                        sql = """ 
+                                SELECT p.TITLE, p.CONTENTS, m.ID , p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
+                                from LIBRARY.POST as p
+                                left join LIBRARY.MEMBER as m
+                                on p.MEMBER_NUMBER = m.NUMBER 
+                                WHERE  p.NUMBER IN (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
+                            """.format(title, contents)
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        result = ""
+                        for (title, contents, id, post_file, date, modify_date, p_number) in cur:
+                            modify_date = "수정이력 없음"
+                            result += """
+                                    <h3>{0}</h3>
+                                    <div class="container">
+                                        <p>{1}</p>
+                                        <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                        <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                    </div>
+                                    <script>
+                                        function delete_check_btn(){{
+                                          if(confirm("정말 삭제하시겠습니까?")==true){{
+                                            window.location = '/community/delete_doc?p_number={6}';
+                                          }} else{{
+                                            return false;
+                                          }}
+                                       }}
+                                    </script>
+                                    """.format(title, contents, id, post_file, date, modify_date,
+                                               p_number)
+
+                        alert = """
+                            <script>
+                                alert("수정 권한이 없습니다.)
+                            </script>
+                        """
+                    except mariadb.Error as e:
+                        print(e)
+                    finally:
+                        if conn:
+                            conn.close()
+                    return render_template('/connunity/watch_doc', content=result, alert= alert)
+
+
+            except mariadb.Error as e:
+                print(e)
+            finally:
+                if conn:
+                    conn.close()
+
+            return render_template("/community/watch_doc.html", content= result)
+
+        except:
+
+            amend_title = request.form["amend_title"]
+            amend_contents = request.form["amend_contents"]
+            amend_post_file = request.form["amend_file"]
+            amend_post_number = request.form["amend_p_number"]
 
             result = ""
-            for (title, contents, id, post_file, date, modify_date, p_number) in cur1:
-                modify_date = "수정이력 없음"
-                result +="""
-                        <h3>{0}</h3>
-                        <div class="container">
-                            <p>{1}</p>
-                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                        </div>
-                        <script>
-                            function delete_check_btn(){{
-                              if(confirm("정말 삭제하시겠습니까?")==true){{
-                                window.location = '/community/delete_doc?p_number={6}';
-                              }} else{{
-                                return false;
-                              }}
-                           }}
-                        </script>
-                        """.format(title, contents, id, post_file, date, modify_date, p_number)
 
-        except mariadb.Error as e:
-            print(e)
-        finally:
-            if conn:
-                conn.close()
+            try:
+                sql = """
+                    UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}",
+                    POST_FILE ="{2}", MODIFY_DATE = now()
+                    WHERE p.NUMBER = {3};
+                    """.format(amend_title, amend_contents, amend_post_file, amend_post_number)
 
-        return render_template("/community/watch_doc.html", content= result)
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+                conn.commit()
 
-    except:
-
-        amend_title = request.form["amend_title"]
-        amend_contents = request.form["amend_contents"]
-        amend_post_file = request.form["amend_file"]
-        amend_post_number = request.form["amend_p_number"]
-
-        result = ""
-
-        try:
-            sql = """
-                UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}",
-                POST_FILE ="{2}", MODIFY_DATE = now()
-                WHERE p.NUMBER = {3};
-                """.format(amend_title, amend_contents, amend_post_file, amend_post_number)
-
-            conn = get_conn()
-            cur = conn.cursor()
-            cur.execute(sql)
-            conn.commit()
-
-            sql1 = """
-                    SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
-                    FROM LIBRARY.POST as p
+                sql = """
+                    SELECT m.ID from LIBRARY.POST as p
                     left join LIBRARY.MEMBER as m
-                    on p.MEMBER_NUMBER = m.NUMBER
-                    where p.NUMBER ={};
-                """.format(amend_post_number)
+                    on p.MEMBER_NUMBER = m.NUMBER 
+                    WHERE  p.NUMBER IN 
+                    (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
+                    """.format(amend_title, amend_contents)
 
-            conn1 = get_conn()
-            cur1 = conn1.cursor()
-            cur1.execute(sql1)
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+                for data in cur:
+                    break
+                if data[0] == session['id']:
 
-            for (title, contents, id, file, date, modify_date, number) in cur1:
-                result += """
-                        <h3>{0}</h3>
-                        <div class="container">
-                            <p>{1}</p>
-                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                        </div>
-                        <script>
-                            function delete_check_btn(){{
-                              if(confirm("정말 삭제하시겠습니까?")==true){{
-                                window.location = '/community/delete_doc?p_number={6}';
-                              }} else{{
-                                return false;
-                              }}
-                           }}
-                        </script>
-                        """.format(title, contents, id, file, date, modify_date, number)
+                    sql1 = """
+                            SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
+                            FROM LIBRARY.POST as p
+                            left join LIBRARY.MEMBER as m
+                            on p.MEMBER_NUMBER = m.NUMBER
+                            where p.NUMBER ={};
+                        """.format(amend_post_number)
 
-        except mariadb.Error as e:
-            print(e)
-        finally:
-            if conn:
-                conn.close()
+                    conn1 = get_conn()
+                    cur1 = conn1.cursor()
+                    cur1.execute(sql1)
 
-        return render_template("/community/watch_doc.html", content= result)
+                    for (title, contents, id, file, date, modify_date, number) in cur1:
+                        result += """
+                                <h3>{0}</h3>
+                                <div class="container">
+                                    <p>{1}</p>
+                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                    <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                    <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                    <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                </div>
+                                <script>
+                                    function delete_check_btn(){{
+                                      if(confirm("정말 삭제하시겠습니까?")==true){{
+                                        window.location = '/community/delete_doc?p_number={6}';
+                                      }} else{{
+                                        return false;
+                                      }}
+                                   }}
+                                </script>
+                                """.format(title, contents, id, file, date, modify_date, number)
+                else:
+                    try:
+                        sql = """
+                                SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
+                                FROM LIBRARY.POST as p
+                                left join LIBRARY.MEMBER as m
+                                on p.MEMBER_NUMBER = m.NUMBER
+                                where p.NUMBER ={};
+                            """.format(amend_post_number)
 
+                        conn = get_conn()
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        for (title, contents, id, file, date, modify_date, number) in cur:
+                            result += """
+                                <h3>{0}</h3>
+                                <div class="container">
+                                    <p>{1}</p>
+                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                    <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                    <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                    <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                </div>
+                                <script>
+                                    function delete_check_btn(){{
+                                      if(confirm("정말 삭제하시겠습니까?")==true){{
+                                        window.location = '/community/delete_doc?p_number={6}';
+                                      }} else{{
+                                        return false;
+                                      }}
+                                   }}
+                                </script>
+                                """.format(title, contents, id, file, date, modify_date, number)
+                        result = """
+                                    <script>
+                                        alert("수정 권한이 없습니다.)
+                                    </script>
+                                """
+                    except mariadb.Error as e:
+                        print(e)
+                    finally:
+                        if conn:
+                            conn.close()
+                    return render_template('/connunity/watch_doc', content=result, alert= alert)
+
+            except mariadb.Error as e:
+                print(e)
+            finally:
+                if conn:
+                    conn.close()
+
+            return render_template("/community/watch_doc.html", content= result)
 
 @app.route('/community/watch_doc', methods = ["GET"])
 def watch_doc():
@@ -550,6 +675,7 @@ def watch_doc():
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(sql)
+
 
 
         for (title, contents, file, id, date, modify_date,p_number) in cur:
@@ -610,62 +736,178 @@ def write_doc():
     author = session['id']
     return render_template("/community/write_doc.html", author = author)
 
-
-# @app.route('/community/watch_doc')
-# def add_comment():
-#     author = session['id']
-#     return render_template("/community/watch_doc.html", author = author)
+@app.route('/community/check_login')
+def check_login():
+    if 'id' in session: # session에 id 값이 있다면(로그인이 돼 있다면)
+        author = session['id']
+        return render_template("/community/write_doc.html", author = author)
+    else:
+        alert = """
+            <script>
+                alert("글을 작성하려면 회원가입 혹은 로그인을 하세요.")
+            </script>
+            """
+        return render_template('/sign_in.html', alert = alert )
 
 @app.route('/community/amend_doc', methods = ['GET'])
 # 사용자가 수정을 클릭하면 실행되는 함수, 글 번호를 GET방식으로 전달받는다.
 def amend_doc():
-    author = session['id']
     p_number = request.args.get("p_number")
+    if 'id' in session:
 
-    # 해당 경로에서 각기 다른 인자값을 전달 받아 DB 연산을 수행하는 용례
-
-    # tag = request.args.get("tag")
-    # ajax = request.args.get("ajax")
-    # if tag:
-    #     ~~~
-    # elif ajax:
-    #     ~~~~
-
-    sql = """ 
-        SELECT p.title, p.CONTENTS, p.post_file, p.NUMBER FROM LIBRARY.POST as p
-        WHERE p.NUMBER = {};
-        """.format(p_number)
-    result = ""
-    #수정에 필요한 모든 값들을 쿼리문으로 불러옴.
-    try:
+        sql = """
+            SELECT m.ID from LIBRARY.POST as p
+            left join LIBRARY.MEMBER as m
+            on p.MEMBER_NUMBER = m.NUMBER 
+            WHERE  p.NUMBER = '{}';
+            """.format(p_number)
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(sql)
+        for data in cur:
+            break
 
+        if data[0] == session['id']:
 
-        for (title, contents, file, p_number) in cur:
-            result += """ 
-                        <form action="/community/watch_doc" method="POST">
-                            <p>제목 : </p>
-                            <input type="text" name= "amend_title" placeholder="{0}">
-                            <br>
-                            <textarea rows="30" name="amend_contents">{1}</textarea>
-                            <input type="hidden" name="amend_p_number" value="{3}">
-                            <br>
-                            <div>
-                                <p>파일첨부 :</p><input type="file" onclick="" name="amend_file">
-                                <input type="submit" value="저장" onclick="">
+            sql = """ 
+                    SELECT p.title, p.CONTENTS, p.post_file, p.NUMBER FROM LIBRARY.POST as p
+                    WHERE p.NUMBER = {};
+                    """.format(p_number)
+            result = ""
+            # 수정에 필요한 모든 값들을 쿼리문으로 불러옴.
+            try:
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+
+                for (title, contents, file, p_number) in cur:
+                    result += """ 
+                            <form action="/community/watch_doc" method="POST">
+                                <p>제목 : </p>
+                                <input type="text" name= "amend_title" placeholder="{0}">
+                                <br>
+                                <textarea rows="30" name="amend_contents">{1}</textarea>
+                                <input type="hidden" name="amend_p_number" value="{3}">
+                                <br>
+                                <div>
+                                    <p>파일첨부 :</p><input type="file" onclick="" name="amend_file">
+                                    <input type="submit" value="저장" onclick="">
+                                </div>
+                            </form>
+                                """.format(title, contents, file, p_number)
+            except mariadb.Error as e:
+                print(e)
+            finally:
+                if conn:
+                    conn.close()
+
+            return render_template("/community/watch_doc_amend.html", content_amend=result)
+            # 실행결과를 watch_doc_amend.html에 변수에 담아 전달
+
+        # 로그인한 사용자가 해당 글을 작성하지 않은 경우
+        else:
+            alert = """
+                <script>
+                    alert("수정 권한이 없습니다.")
+                </script>
+            """
+
+            sql = """
+                SELECT p.TITLE , p.CONTENTS, m.ID ,p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
+                FROM LIBRARY.POST as p
+                left join LIBRARY.MEMBER as m
+                on p.MEMBER_NUMBER = m.NUMBER
+                where p.NUMBER ={};
+                """.format(p_number)
+            result = ""
+
+            try:
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+
+                result = ""
+                for (title, contents, id, post_file, date, modify_date, p_number) in cur:
+                    modify_date = "수정이력 없음"
+                    result += """
+                            <h3>{0}</h3>
+                            <div class="container">
+                                <p>{1}</p>
+                                <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
                             </div>
-                        </form>
-                    """.format(title, contents, file, p_number)
-    except mariadb.Error as e:
-        print(e)
-    finally:
-        if conn:
-            conn.close()
+                            <script>
+                                function delete_check_btn(){{
+                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                    window.location = '/community/delete_doc?p_number={6}';
+                                  }} else{{
+                                    return false;
+                                  }}
+                               }}
+                            </script>
+                            """.format(title, contents, id, post_file, date, modify_date, p_number)
 
-    return render_template("/community/watch_doc_amend.html", author = author, content_amend = result)
-    #실행결과를 watch_doc_amend.html에 변수에 담아 전달
+            except mariadb.Error as e:
+                print(e)
+            finally:
+                if conn:
+                    conn.close()
+
+            return render_template('/community/watch_doc.html', content =result, alert=alert)
+
+    # 로그인 하지 않고 수정 버튼 누른 경우
+    else:
+        alert = """
+                <script>
+                    alert("수정 권한이 없습니다.")
+                </script>
+                """
+        sql = """
+            SELECT p.TITLE , p.CONTENTS, m.ID ,p.POST_FILE, p.DATE, p.MODIFY_DATE ,p.NUMBER
+            FROM LIBRARY.POST as p
+            left join LIBRARY.MEMBER as m
+            on p.MEMBER_NUMBER = m.NUMBER
+            where p.NUMBER ={};
+            """.format(p_number)
+        result = ""
+
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute(sql)
+
+            result = ""
+            for (title, contents, id, post_file, date, modify_date, p_number) in cur:
+                # modify_date = "수정이력 없음"
+                result += """
+                        <h3>{0}</h3>
+                        <div class="container">
+                            <p>{1}</p>
+                            <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                        </div>
+                        <script>
+                            function delete_check_btn(){{
+                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                window.location = '/community/delete_doc?p_number={6}';
+                              }} else{{
+                                return false;
+                              }}
+                           }}
+                        </script>
+                        """.format(title, contents, id, post_file, date, modify_date, p_number)
+
+        except mariadb.Error as e:
+            print(e)
+        finally:
+            if conn:
+                conn.close()
+
+        return render_template('/community/watch_doc.html', content=result, alert=alert)
 
 @app.route('/community/delete_doc', methods = ["GET"])
 def delete_query():
