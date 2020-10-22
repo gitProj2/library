@@ -87,7 +87,6 @@ def member_info_insert():
         conn = get_conn()
         cur = conn.cursor()
         sql = "INSERT INTO MEMBER(id, pw, name, gender, birthday, phone, email) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}')".format(new_id, new_pw, new_name, new_gender, new_birthday, new_phone, new_email)
-        print(sql)
         cur.execute(sql)
         conn.commit()
 
@@ -101,6 +100,33 @@ def member_info_insert():
             conn.close()
 
     return render_template('/main.html')
+
+# 회원가입시 ID 중복체크
+@app.route('/sign_up', methods=['POST'])
+def id_check():
+    new_id = request.form["id"]
+    result=""
+
+    try:      
+        sql = "SELECT id FROM MEMBER "
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+        conn.commit()
+
+        row = cur.fetchone()
+        result = str(row[0])            
+
+    except mariadb.Error as e:
+        result = "사용자 없음."
+        sys.exit(1)
+    except TypeError as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+
+    return render_template('/sign_up', check=result)
 
 # 로그인 한 경우 회원정보 불러오기
 @app.route('/member_info')

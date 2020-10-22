@@ -1,5 +1,6 @@
 <!--회원가입 화면-->
 <link rel="stylesheet" href="../static/css/signupcss.css">
+<script type="text/javascript" src="../static/js/sign_up.js"></script>
 {% extends "base.html" %}
 {% block section %}
 
@@ -14,9 +15,9 @@
             <ul class="box1">
                 <div class="id_box">
 <!--                 아이디 중복 확인 기능은 아직 없음-->
-                    <li>아이디 &nbsp; <input type="text" name="id" id="id" style="float:right;" required></li>
+                    <li>아이디 &nbsp; <input type="text" name="id" id="id" style="float:right;" autofocus required></li>
                     <div class="check_font" id="id_check"></div>
-                    <li><input type="button" id="id_ck" value="ID 중복확인" onclick="location.href='#'">
+                    <li><input type="button" id="id_ck" value="ID 중복확인" onclick="id_double_check('id',this)">
                 </div>
 
 <!--                비밀번호와 비밀번호 확인의 동일성 여부 판단 기능은 아직 없음-->
@@ -27,7 +28,7 @@
 
         <div>   
             <ul class="box2">
-                <li>이름 &nbsp; <input type="text" name="name" style="float:right;" autofocus required></li>
+                <li>이름 &nbsp; <input type="text" name="name" style="float:right;"  required></li>
                 <li>성별 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <div id="gender">
                     <label><input type="radio" name="gender" value="남">남</label>
