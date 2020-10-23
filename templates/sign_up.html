@@ -14,15 +14,13 @@
         <div>
             <ul class="box1">
                 <div class="id_box">
-<!--                 아이디 중복 확인 기능은 아직 없음-->
                     <li>아이디 &nbsp; <input type="text" name="id" id="id" style="float:right;" autofocus required></li>
-                    <div class="check_font" id="id_check"></div>
-                    <li><input type="button" id="id_ck" value="ID 중복확인" onclick="id_double_check('id',this)">
+                    <li><input type="button" id="id_ck" value="ID 중복확인" onclick="id_double_check()"></li>
                 </div>
 
 <!--                비밀번호와 비밀번호 확인의 동일성 여부 판단 기능은 아직 없음-->
                 <li>비밀번호 &nbsp; <input type="password" name="pw" style="float:right;" required></li>
-                <li>비밀번호 확인 &nbsp; <input type="password" name="pw2" style="float:right , margin-left 20px"; required ></li>
+                 <li>비밀번호 확인 &nbsp; <input type="password"name="pw2" style="float:right , margin-left 20px"; required ></li>
             </ul>
         </div>
 
@@ -43,8 +41,8 @@
                      </td>
                 </tr>
 <!--                연락처와 이메일은 placeholder로 입력형식 예시를 나타내었으나 형식 일치여부 판단 기능은 아직 없음-->
-                <li>연락처 &nbsp; <input type="text" name="phone" style="float:right;" placeholder="010-0000-0000" autofocus required></li>
-                <li>이메일 &nbsp; <input type="text" name="email" style="float:right;" placeholder="aaa@aaa.aaa" autofocus required></li>
+                <li>연락처 &nbsp; <input type="text" name="phone" style="float:right;" placeholder="010-0000-0000" required></li>
+                <li>이메일 &nbsp; <input type="text" name="email" style="float:right;" placeholder="aaa@aaa.aaa" required></li>
             </ul>
         </div>
 

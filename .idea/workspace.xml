@@ -2,38 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b75a0c3d-82ed-4221-afdf-0acd92f240e1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/library.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/basic.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/basic.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/board_home_css.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/board_home_css.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/books.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/books.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/main.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/master.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/master.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/membercss.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/membercss.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/signincss.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/signincss.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/signupcss.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/signupcss.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/tmaster.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/tmaster.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/watch_docs_css.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/watch_docs_css.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/write_doc_css.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/write_doc_css.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/books.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/books.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/sign_up.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/books.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/books.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/community/amend_doc.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/community/amend_doc.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/community/board_home.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/community/board_home.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/community/board_home_search.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/community/board_home_search.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/community/watch_doc.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/community/watch_doc.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/community/watch_doc_amend.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/community/watch_doc_amend.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/community/write_doc.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/community/write_doc.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/main.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/main.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/master/master.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/master/master.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/member_info.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/member_info.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/sign_in.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/sign_in.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/sign_up.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/sign_up.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/sign_up.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/sign_up.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,6 +22,35 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+  </component>
+  <component name="RunManager">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="library" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -62,5 +62,56 @@
       <updated>1603410637212</updated>
     </task>
     <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1899" height="264" key="GridCell.Tab.0.bottom" timestamp="1603438964617">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="264" key="GridCell.Tab.0.bottom/0.0.1920.1160@0.0.1920.1160" timestamp="1603438964617" />
+    <state width="1899" height="264" key="GridCell.Tab.0.center" timestamp="1603438964617">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="264" key="GridCell.Tab.0.center/0.0.1920.1160@0.0.1920.1160" timestamp="1603438964617" />
+    <state width="1899" height="264" key="GridCell.Tab.0.left" timestamp="1603438964617">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="264" key="GridCell.Tab.0.left/0.0.1920.1160@0.0.1920.1160" timestamp="1603438964617" />
+    <state width="1899" height="264" key="GridCell.Tab.0.right" timestamp="1603438964617">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="264" key="GridCell.Tab.0.right/0.0.1920.1160@0.0.1920.1160" timestamp="1603438964617" />
+    <state width="1899" height="222" key="GridCell.Tab.1.bottom" timestamp="1603438444506">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="222" key="GridCell.Tab.1.bottom/0.0.1920.1160@0.0.1920.1160" timestamp="1603438444506" />
+    <state width="1899" height="222" key="GridCell.Tab.1.center" timestamp="1603438444506">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="222" key="GridCell.Tab.1.center/0.0.1920.1160@0.0.1920.1160" timestamp="1603438444506" />
+    <state width="1899" height="222" key="GridCell.Tab.1.left" timestamp="1603438444505">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="222" key="GridCell.Tab.1.left/0.0.1920.1160@0.0.1920.1160" timestamp="1603438444505" />
+    <state width="1899" height="222" key="GridCell.Tab.1.right" timestamp="1603438444506">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state width="1899" height="222" key="GridCell.Tab.1.right/0.0.1920.1160@0.0.1920.1160" timestamp="1603438444506" />
+    <state x="461" y="224" key="SettingsEditor" timestamp="1603414973961">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state x="461" y="224" key="SettingsEditor/0.0.1920.1160@0.0.1920.1160" timestamp="1603414973961" />
+    <state x="521" y="309" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1603422681998">
+      <screen x="0" y="0" width="1920" height="1160" />
+    </state>
+    <state x="521" y="309" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.1920.1160@0.0.1920.1160" timestamp="1603422681998" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="cur" language="Python" />
+        <watch expression="cur.fetchone()" language="Python" />
+        <watch expression="id" language="Python" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

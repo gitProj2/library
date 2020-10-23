@@ -102,20 +102,19 @@ def member_info_insert():
     return render_template('/main.html')
 
 # 회원가입시 ID 중복체크
-@app.route('/sign_up', methods=['POST'])
+@app.route('/check_id2', methods=['POST'])
 def id_check():
     new_id = request.form["id"]
-    result=""
+    result = ""
 
-    try:      
-        sql = "SELECT id FROM MEMBER "
+    try:
+        sql = "SELECT id,number FROM MEMBER where id=\'{0}\'".format(new_id)
         conn = get_conn()
         cur = conn.cursor()
         cur.execute(sql)
-        conn.commit()
 
-        row = cur.fetchone()
-        result = str(row[0])            
+        for (id, number) in cur:
+            result = "{0}".format(id, number)
 
     except mariadb.Error as e:
         result = "사용자 없음."
@@ -126,7 +125,10 @@ def id_check():
         if conn:
             conn.close()
 
-    return render_template('/sign_up', check=result)
+        if new_id.strip() == result:
+            return "사용불가한 ID 입니다."
+        else:
+            return "사용가능한 ID 입니다."
 
 # 로그인 한 경우 회원정보 불러오기
 @app.route('/member_info')
