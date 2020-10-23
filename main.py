@@ -1,5 +1,4 @@
-import mariadb
-import sys, datetime
+import sys, mariadb, os
 from flask import Flask, render_template, request, session
 
 app = Flask(__name__)
@@ -87,7 +86,6 @@ def member_info_insert():
         conn = get_conn()
         cur = conn.cursor()
         sql = "INSERT INTO MEMBER(id, pw, name, gender, birthday, phone, email) VALUES ('{0}','{1}','{2}','{3}','{4}','{5}','{6}')".format(new_id, new_pw, new_name, new_gender, new_birthday, new_phone, new_email)
-        print(sql)
         cur.execute(sql)
         conn.commit()
 
@@ -535,7 +533,8 @@ def books():
     # session[number] - login 후 session에 보관하는 회원정보의 number 값(PK)
     catagory_number = request.args.get("catagory_number")
     title = request.args.get("title")
-    number = session["number"]
+    if 'number' in session: number = session['number']
+    else : number = ""
 
     try:
         ############################################################################################################
@@ -558,14 +557,14 @@ def books():
         ############################################################################################################
         # 책 목록 조회 및 구성                                                                                        #
         sql = """
-        SELECT B.NUMBER, B.NAME, B.IMG, B.LOAN, R.MEMBER_NUMBER FROM RENTER_RECORD R
+        SELECT B.NUMBER, B.NAME, B.IMG, B.LOAN, R.MEMBER_NUMBER, B.CONTENTS FROM RENTER_RECORD R
         JOIN BOOK B
         ON B.NUMBER = R.BOOK_NUMBER 
         AND R.LOAN = 'N'"""
 
         sql2 = """
         UNION ALL
-        SELECT B.NUMBER, B.NAME, B.IMG, B.LOAN ,0 AS MEMBER_NUMBER FROM BOOK B 
+        SELECT B.NUMBER, B.NAME, B.IMG, B.LOAN ,0 AS MEMBER_NUMBER, B.CONTENTS FROM BOOK B 
         WHERE LOAN != 'N'
         """
 
@@ -582,32 +581,35 @@ def books():
 
         sql2 += "ORDER BY NUMBER ASC "
         sql += sql2
-
         cur = conn.cursor()
         cur.execute(sql)
         result = ""
 
-        for (NUMBER, NAME, IMG, LOAN, MEMBER_NUMBER) in cur:
+        for (NUMBER, NAME, IMG, LOAN, MEMBER_NUMBER, CONTENTS) in cur:
             result += """
-                <div class="book" id="book_{0}">
-                    <input type="image" src="{2}" alt="책" width="100px" height="160px">
-                    <span>{1}</span>""".format(NUMBER, NAME, IMG)
+                    <div class="book" id="book_{0}">
+                        <input type="image" src="{2}" alt="책" width="100px" height="160px" onclick="book_datails(this,'{0}')">
+                        <span id="book_text_{0}" style="display:none">{3}</span>
+                        <span id="book_name_{0}">{1}</span>""".format(NUMBER, NAME, IMG, CONTENTS)
             if MEMBER_NUMBER == number:
                 if LOAN != 'Y':
                     result += """
-                        <button type="button" id="book_borrow_{0}" onclick="return_book('{0}',this)">반납</button>
+                        <button class="click_button" type="button" id="book_borrow_{0}" onclick="return_book('{0}',this)">반납</button>
                     </div>""".format(NUMBER)
-            else :
+            else:
                 if LOAN == 'Y':
-                    result += """
-                        <button type="button" id="book_borrow_{0}" onclick="borrow_book('{0}',this)">대여</button>
+                    if number == "":
+                        result += """
+                        <button class="click_button" type="button" id="book_borrow_{0}" onclick="login_alert()">대여</button>
+                    </div>""".format(NUMBER)
+                    else:
+                        result += """
+                        <button class="click_button" type="button" id="book_borrow_{0}" onclick="borrow_book('{0}',this)">대여</button>
                     </div>""".format(NUMBER)
                 else:
                     result += """
                         <span id="book_borrow_{0}">대여 중</span>
                     </div>""".format(NUMBER)
-    ################################################################################################################
-
     except mariadb.Error as e:
         print(e)
         sys.exit(1)
@@ -702,7 +704,6 @@ def return_book():
             conn.close()
 
     return "반납 성공!!"
-
 
 if __name__ == "__main__":
     app.secret_key = 'app secret key'
