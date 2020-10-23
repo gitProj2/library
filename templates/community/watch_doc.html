@@ -22,10 +22,13 @@
             <button class="float-right" disabled><span>작성자 : janson 최종 수정일 : xxxx.xx.xx</span></button> 
         </div>
 
-        <div class="container">
-          <textarea placeholder="댓글 작성" onfocus="this.placeholder=''" onblur="this.placeholder='댓글 작성'"></textarea>
-          <input class="float-right" type="button" value="등록">     
-        </div>
+
+        <form action="/community/write_com" method="POST">
+            <div class="container">
+                <textarea name="comment" placeholder="댓글 작성" onfocus="this.placeholder=''" onblur="this.placeholder='댓글 작성'"></textarea>
+                <input class="float-right" type="submit" value="등록" onclick="">
+            </div>
+        </form>
         
     </section>
 {% endblock %}
