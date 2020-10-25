@@ -3,6 +3,9 @@
 {% block section %}
 {{ content | safe }}
     <section>
+<!--        수정하려는 게시글의 제목과 내용이 회원이 이전에 작성했던 것과 동일한 경우와
+            같은 게시글에 이미 동일한 내용의 댓글을 달았을 경우 오류 처리.(이재형)-->
+        {{alert|safe}}
       <a href="/books">
       <img src="../static/image/main/b1.png" id=mainImage width="600px" alt="Books"></a>
     
