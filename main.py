@@ -105,6 +105,34 @@ def member_info_insert():
 
     return render_template('/main.html')
 
+@app.route('/check_id2', methods=['POST'])
+def id_check():
+    new_id = request.form["id"]
+    result = ""
+
+    try:
+        sql = "SELECT id,number FROM MEMBER where id=\'{0}\'".format(new_id)
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+
+        for (id, number) in cur:
+            result = "{0}".format(id, number)
+
+    except mariadb.Error as e:
+        result = "사용자 없음."
+        sys.exit(1)
+    except TypeError as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+
+        if new_id.strip() == result:
+            return "사용불가한 ID 입니다."
+        else:
+            return "사용가능한 ID 입니다."
+
 # 로그인 한 경우 회원정보 불러오기
 @app.route('/member_info')
 def member_info():
