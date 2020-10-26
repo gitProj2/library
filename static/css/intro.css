@@ -1,0 +1,27 @@
+.title {
+    text-align: center;
+}
+
+.sub_title1 {
+    display: inline;
+    float: left;
+}
+
+.intro_text1 {
+    display: inline;
+    float: left;
+}
+
+.sub_title2 {
+    display: inline;
+    float: right;
+}
+
+.intro_text2 {
+    display: inline;
+    float: right;
+}
+
+.intro_bottom {
+    text-align: center;
+}

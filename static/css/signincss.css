@@ -27,10 +27,11 @@ input {
     top:100px;
 }
 
-.box1  {
+section.box1  {
     float: left;
     text-decoration: none;
-    border-width: 1px;
+    border-width: none;
+    background-color: lightgray;
     border-style: solid;
     display: block;
     list-style-type: none;
