@@ -15,6 +15,10 @@ def get_conn():
     return conn
 
 @app.route('/')
+def opening():
+    return render_template("/opening.html")
+
+@app.route('/main')
 def main():
     return render_template("/main.html")
 
@@ -1861,7 +1865,7 @@ def books():
     page_number = request.args.get("page_number")
     catagory_number = request.args.get("catagory_number")
     title = request.args.get("title")
-    view_count = 3
+    view_count = 10
 
     if 'number' in session: number = session['number']
     else: number = ""
@@ -1911,7 +1915,7 @@ def books():
         sql2 += """ORDER BY NUMBER ASC
         """
 
-        if page_number is not None:
+        if page_number is not None and page_number != "1":
             page_number = int(page_number)
             sql2 += "LIMIT {0}, {1} ".format(page_number * view_count, view_count)
         else:
