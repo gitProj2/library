@@ -1,5 +1,7 @@
 import sys, mariadb, os
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, send_from_directory
+from werkzeug.utils import secure_filename
+
 
 app = Flask(__name__)
 
@@ -536,17 +538,16 @@ def search_doc():
     return render_template("/community/board_home_search.html", content = result, content1 = for_rotation_counting)
     #DB에서 가져온 값을 자동 생성 표에 넣고 이를 담은 변수와 for문의 회전 횟수를 담은 변수를 함께 위 경로에 렌더링
 
-
-#사용자가 글을 작성한 후 혹은 본인 글을 수정한 후 넘어오는 함수. 내용을  POST로 받아 온다. 중복 확인할 필요는 없지만 로그인 세션을 한번 더 확인한다.
-@app.route('/community/watch_doc', methods = ["POST"])
+# 사용자가 글을 작성한 후 혹은 본인 글을 수정한 후 넘어오는 함수. 내용을  POST로 받아 온다. 중복 확인할 필요는 없지만 로그인 세션을 한번 더 확인한다.
+@app.route('/community/watch_doc', methods=["POST"])
 def send_show_doc():
 
     if 'id' in session:
 
-        try :
+        try:
             title = request.form["title"]
             contents = request.form["contents"]
-            post_file = request.form["post_file"] # request.files
+            post_file = request.files['post_file']
 
             if title == '':
                 alert = """
@@ -572,7 +573,7 @@ def send_show_doc():
                     check_duple = ()
                     for check_duple in cur:
                         continue
-                    print(check_duple)
+
                     # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
                     if check_duple ==(1,):
                         result = """
@@ -582,21 +583,29 @@ def send_show_doc():
                         """
                         return render_template('/main.html', alert = result)
 
+                    # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
                     else:
-                        sql  = "INSERT into LIBRARY.POST (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, `DATE`, VIEW) values ('{}',{},'{}','{}', now(), 0);".format(title, session['number'], post_file, contents )
-                        # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
 
+                        sql = """
+                            INSERT INTO LIBRARY.POST
+                            (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, DATE , VIEW) 
+                            VALUES(
+                            '{0}',
+                            '{1}', 
+                            '/static/community/{2}', 
+                            '{3}', now(),0);""".format(title, session['number'], post_file.filename, contents)
 
-                        conn = get_conn()
                         cur = conn.cursor()
                         cur.execute(sql)
                         conn.commit()
+
+                        post_file.save(os.path.join('./static/community', post_file.filename))
 
                         sql = """
                                 SELECT p.NUMBER FROM LIBRARY.POST as p
                                 where p.MEMBER_NUMBER = {} AND p.TITLE = '{}';
                                 """.format(session['number'], title)
-                        conn = get_conn()
+
                         cur = conn.cursor()
                         cur.execute(sql)
 
@@ -645,26 +654,19 @@ def send_show_doc():
                 except mariadb.Error as e:
                     print(e)
 
-                except mariadb.Error as e:
-                    print(e)
-                    sys.exit(1)
-
                 finally:
                     if conn:
                         conn.close()
 
                 return render_template("/community/watch_doc.html", content= result, no_com = no_com)
 
-        #사용자가 수정한 게시글에서 기존 댓글을 출력
+        #사용자가 수정한 게시글에서 기존 댓글을 출력한다.
         except:
 
             amend_title = request.form["amend_title"]
             amend_contents = request.form["amend_contents"]
-            amend_post_file = request.form["amend_file"]
+            amend_post_file = request.files["amend_file"]
             amend_post_number = request.form["amend_p_number"]
-
-            print(amend_title)
-            print(type(amend_title))
 
             if bool(amend_title) == False:
                 alert = """
@@ -704,9 +706,9 @@ def send_show_doc():
                     else:
                         sql = """
                             UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}",
-                            POST_FILE ="{2}", MODIFY_DATE = now()
+                            POST_FILE ="/static/community/{2}", MODIFY_DATE = now()
                             WHERE p.NUMBER = {3};
-                            """.format(amend_title, amend_contents, amend_post_file, amend_post_number)
+                            """.format(amend_title, amend_contents, amend_post_file.filename, amend_post_number)
 
                         cur = conn.cursor()
                         cur.execute(sql)
@@ -933,7 +935,7 @@ def amend_doc():
 
                 for (title, contents, file, p_number) in cur:
                     result += """ 
-                            <form action="/community/watch_doc" method="POST">
+                            <form action="/community/watch_doc" method="POST" enctype="multipart/form-data">
                                 <p>제목</p>
                                 <br>
                                 <input type="text" name= "amend_title" value="{0}">
@@ -942,7 +944,7 @@ def amend_doc():
                                 <input type="hidden" name="amend_p_number" value="{3}">
                                 <br>
                                 <div>
-                                    <p>파일첨부 :</p><input type="file" onclick="" name="amend_file">
+                                    <p>파일첨부 :</p><input type="file" name="amend_file" accept="image/*">
                                     <input style ="float:right" type="submit" value="저장" onclick="">
                                 </div>
                             </form>
