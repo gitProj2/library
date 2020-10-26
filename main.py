@@ -419,7 +419,7 @@ def send_show_doc():
 
     if 'id' in session:
 
-        try:
+        try :
             title = request.form["title"]
             contents = request.form["contents"]
             post_file = request.form["post_file"] # request.files
@@ -447,7 +447,7 @@ def send_show_doc():
 
                     check_duple = ()
                     for check_duple in cur:
-                        break
+                        continue
                     print(check_duple)
                     # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
                     if check_duple ==(1,):
@@ -478,7 +478,7 @@ def send_show_doc():
 
                         g = ()
                         for g in cur:
-                            break
+                            continue
                         p_number = g[0]
 
                         # remeber_p_number()에 p_number를 저장
@@ -542,16 +542,17 @@ def send_show_doc():
             print(amend_title)
             print(type(amend_title))
 
-            try:
-            # 왜 안될까.....
-            #     if bool(amend_title) == False:
-            #         alert = """
-            #                 <script>
-            #                     alert("제목을 작성하세요.")
-            #                 </script>
-            #                 """
-            #         return render_template('/main.html', alert=alert)
-            #     else:
+            if bool(amend_title) == False:
+                alert = """
+                        <script>
+                            alert("제목을 작성하세요.")
+                        </script>
+                        """
+                return render_template('/main.html', alert=alert)
+
+            else:
+
+                try:
                     # remeber_p_number()에 amend_post_number를 저장
                     check_p_number.insert_p_number(amend_post_number)
 
@@ -567,7 +568,7 @@ def send_show_doc():
 
                     check_duple = ()
                     for check_duple in cur:
-                        break
+                        continue
                     # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
                     if check_duple == (1,):
                         result = """
@@ -651,17 +652,17 @@ def send_show_doc():
                                                 </script>
                                             """.format(comment, id, date, c_modify_date, c_number)
 
-            except mariadb.Error as e:
-                print(e)
+                except mariadb.Error as e:
+                        print(e)
 
-            except mariadb.Error as e:
-                print(e)
-                sys.exit(1)
-            finally:
-                if conn:
-                    conn.close()
+                except mariadb.Error as e:
+                        print(e)
+                        sys.exit(1)
+                finally:
+                        if conn:
+                            conn.close()
 
-            return render_template("/community/watch_doc.html", content= result, com_content=comment_result, for_rotation_counting=comment_for_rotation_counting)
+                return render_template("/community/watch_doc.html", content= result, com_content=comment_result, for_rotation_counting=comment_for_rotation_counting)
 
 @app.route('/community/watch_doc', methods = ["GET"])
 def watch_doc():
@@ -791,7 +792,7 @@ def amend_doc():
         cur = conn.cursor()
         cur.execute(sql)
         for data in cur:
-            break
+            continue
 
         if data[0] == session['id']:
 
@@ -997,84 +998,192 @@ def delete_query():
         cur.execute(sql)
         #data = ()
         for data in cur:
-            break
+            continue
 
         if data[0] == session['id']:
             try:
-                try:
+
+                sql = """
+                    SELECT COMMENT_NUMBER from LIBRARY.COMMENT
+                    where POST_NUMBER = {0};
+                    """.format(p_number)
+
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+
+                x = ()
+
+                for x in cur:
+                    continue
+
+                if bool(x) == True:
+                    # sql = """
+                    #     SELECT COMMENT_NUMBER FROM LIBRARY.COMMENT
+                    #     where POST_NUMBER = {};
+                    # """.format(p_number)
+                    # conn = get_conn()
+                    # cur = conn.cursor()
+                    # cur.execute(sql)
+                    #
+                    # d_progresss = []
+                    # for i in cur:
+                    #     d_progresss.append(i)
+                    #
+                    # for u in range(len(d_progresss)):
+                    #     sql = """
+                    #         DELETE FROM LIBRARY.COMMENT
+                    #         where COMMENT_NUMBER ={};
+                    #     """.format(int(d_progresss[u][0]))
+                    #
+                    #     cur = conn.cursor()
+                    #     cur.execute(sql)
+                    #     conn.commit()
+                    # sql = """
+    #                         DELETE FROM LIBRARY.POST
+    #                         where `NUMBER` = {};
+    #                         """.format(p_number)
+                    # cur = conn.cursor()
+                    # cur.execute(sql)
+                    # conn.commit()
+                    alert = """
+                        <script>
+                            alert("해당 글에는 댓글이 달려 있어 삭제가 불가합니다.")
+                        </script>
+                        """
                     sql = """
-                        DELETE FROM LIBRARY.POST where NUMBER = {} ;
-                       """.format(p_number)
+                                SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                                p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                                left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                                WHERE p.NUMBER = {};
+                                """.format(p_number)
+
+                    conn = get_conn()
+                    cur = conn.cursor()
+                    cur.execute(sql)
+
+                    for (title, contents, file, id, date, modify_date, p_number) in cur:
+                        result = ""
+                        if modify_date == None:
+                            modify_date = "수정 내역 없음"
+
+                            result += """
+                                    <h3>{0}</h3>
+                                    <div class="container">
+                                        <p>{1}</p>
+                                        <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                        <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                    </div>
+                                    <script>
+                                        function delete_check_btn(){{
+                                          if(confirm("정말 삭제하시겠습니까?")==true){{
+                                            window.location = '/community/delete_doc?p_number={6}';
+                                          }} else{{
+                                            return false;
+                                          }}
+                                       }}
+                                    </script>
+                                    """.format(title, contents, file, id, date, modify_date, p_number)
+                        else:
+                            result = ""
+                            result += """
+                                        <h3>{0}</h3>
+                                    <div class="container">
+                                        <p>{1}</p>
+                                        <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                        <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                    </div>
+                                    <script>
+                                        function delete_check_btn(){{
+                                          if(confirm("정말 삭제하시겠습니까?")==true){{
+                                            window.location = '/community/delete_doc?p_number={6}';
+                                          }} else{{
+                                            return false;
+                                          }}
+                                       }}
+                                    </script>
+                                    """.format(title, contents, file, id, date, modify_date, p_number)
+
+                    sql = """
+                        SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                        from LIBRARY.COMMENT 
+                        where POST_NUMBER = {};
+                    """.format(p_number)
+
+                    cur = conn.cursor()
+                    cur.execute(sql)
+
+                    comment_result = ""
+                    comment_for_rotation_counting = 0
+                    for (comment, id, date, c_modify_date, c_number) in cur:
+                        comment_for_rotation_counting += 1
+                        comment_result += """
+                                            <div class="container">
+                                                <p>{0}</p>
+                                                <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                                <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                                <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                            </div>
+                                            <script>
+                                                function com_delete_check_btn_{4}(){{
+                                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                    window.location = '/community/delete_com?del_c_number={4}';
+                                                  }} else{{
+                                                    return false;
+                                                  }}
+                                               }}
+                                            </script>
+                                        """.format(comment, id, date, c_modify_date, c_number)
+                    return render_template('community/watch_doc.html', content = result, com_content = comment_result, for_rotation_counting = comment_for_rotation_counting, alert = alert)
+
+                else:
+                    sql = """
+                            DELETE FROM LIBRARY.POST where NUMBER = {} ;
+                           """.format(p_number)
                     conn = get_conn()
                     cur = conn.cursor()
                     cur.execute(sql)
                     conn.commit()
-                except:
                     sql = """
-                        SELECT c.COMMENT_NUMBER FROM LIBRARY.COMMENT as c
-                        where c.POST_NUMBER = {};
-                    """.format(p_number)
-                    conn = get_conn()
+                            SELECT m.ID, p.NUMBER, p.title, p.date
+                            FROM LIBRARY.POST as p
+                            LEFT join LIBRARY.MEMBER as m
+                            on p.MEMBER_NUMBER = m.NUMBER ORDER by p.NUMBER desc;
+                            """
+                    result = ""
+
                     cur = conn.cursor()
                     cur.execute(sql)
 
-                    d_progresss = ()
-                    for d_progresss in cur:
-                        print(d_progresss)
-
-                    for u in range(len(d_progresss)):
-                        sql = ""
-                        sql = """
-                            DELETE FROM LIBRARY.COMMENT
-                            where COMMENT_NUMBER ={};
-                        """.format(int(d_progresss[u]))
-
-                        cur = conn.cursor()
-                        cur.execute(sql)
-
-                    sql = """
-                        DELETE FROM LIBRARY.POST
-                        where `NUMBER` = {};
-                        """.format(p_number)
-                    cur = conn.cursor()
-                    cur.execute(sql)
-
-                sql = """
-                        SELECT m.ID, p.NUMBER, p.title, p.date
-                        FROM LIBRARY.POST as p
-                        LEFT join LIBRARY.MEMBER as m
-                        on p.MEMBER_NUMBER = m.NUMBER ORDER by p.NUMBER desc;
-                        """
-                result = ""
-
-                cur = conn.cursor()
-                cur.execute(sql)
-
-                result += """<table>
-                                    <thead>
+                    result += """<table>
+                                        <thead>
+                                            <tr>
+                                                <th>번호</th>
+                                                <th>제목</th>
+                                                <th>글쓴이</th>
+                                                <th>작성일시</th>
+                                            </tr>
+                                        </thead>
+                                    """
+                    for_rotation_counting = 0  # for 문이 회전하는 횟수를 계산해 게시글 수 확인 후 변수에 담아 테이블과 함께 게시판 html에 전달
+                    for (id, number, title, date) in cur:
+                        for_rotation_counting += 1
+                        result += """
                                         <tr>
-                                            <th>번호</th>
-                                            <th>제목</th>
-                                            <th>글쓴이</th>
-                                            <th>작성일시</th>
+                                            <th>{1}</th>
+                                            <th><a href="/community/watch_doc?p.number={4}">{2}</a></th> 
+                                            <th>{0}</th>
+                                            <th>{3}</th>
                                         </tr>
-                                    </thead>
-                                """
-                for_rotation_counting = 0  # for 문이 회전하는 횟수를 계산해 게시글 수 확인 후 변수에 담아 테이블과 함께 게시판 html에 전달
-                for (id, number, title, date) in cur:
-                    for_rotation_counting += 1
-                    result += """
-                                    <tr>
-                                        <th>{1}</th>
-                                        <th><a href="/community/watch_doc?p.number={4}">{2}</a></th> 
-                                        <th>{0}</th>
-                                        <th>{3}</th>
-                                    </tr>
-        
-                                    """.format(id, number, title, date, number)
-                    # 글 제목에 링크를 걸어 해당 글을 화면 이동
+            
+                                        """.format(id, number, title, date, number)
+                        # 글 제목에 링크를 걸어 해당 글을 화면 이동
 
-                result += "</table>"
+                    result += "</table>"
 
             except mariadb.Error as e:
                 print(e)
@@ -1082,7 +1191,7 @@ def delete_query():
                 if conn:
                     conn.close()
 
-            return render_template("/community/board_home.html", content=result, content1=for_rotation_counting)
+            return render_template("/community/board_home.html", content=result, content1 = for_rotation_counting)
         # 로그인한 사용자가 다른 사용자의 글을 삭제하려는 경우
         else:
             alert = """
@@ -1189,7 +1298,7 @@ def write_com():
 
                 i = ()
                 for i in cur:
-                    break
+                    continue
                 if i == (1,):
                     result = """
                             <script>
@@ -1325,7 +1434,7 @@ def write_com():
 
                 data_temp = ()
                 for data_temp in cur:
-                    break
+                    continue
                 amend_com_id = data_temp[0]
                 amend_com_p_number = data_temp[1]
                 amend_com_p_number = int(amend_com_p_number)
@@ -1342,7 +1451,7 @@ def write_com():
 
                 i_temp = ()
                 for i_temp in cur:
-                    break
+                    continue
 
                 if i_temp == False:
                     result = """
@@ -1378,7 +1487,7 @@ def write_com():
 
                     j = ()
                     for j in cur:
-                        break
+                        continue
                     p_number = j[0]
                     p_number = int(p_number)
 
@@ -1515,7 +1624,7 @@ def amend_com():
         cur.execute(sql)
 
         for id_test in cur:
-            break
+            continue
         if id_test[0] == id:
 
             sql= """
@@ -1576,7 +1685,7 @@ def delete_com():
         cur.execute(sql)
 
         for data in cur:
-            break
+            continue
         if data[0] == session['id']:
             try:
                 sql = """
