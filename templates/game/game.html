@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가위바위보 게임</title>
+    <link rel="stylesheet" href="/static/css/basic.css">
+    <link rel="stylesheet" href="/static/css/game.css">
+</head>
+<body>
+    <header>
+        <div>
+          <a href="/">
+          <img src="../static/image/main/logo.png" id="logo" width="120px" alt="로고"></a>
+        </div>
+    
+        <div id="top_menu">
+          <a href="/sign_in">LOGIN</a>
+          <a>l</a>
+          <a href="/sign_up">JOIN US</a>
+          <a>l</a>
+          <a href="/member_info">회원정보수정</a>
+          <a>l</a>
+          <a href="/master/master">MASTER PAGE</a>
+        </div>
+    
+        <nav id="navbar">
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a>l</a></li>
+            <li><a href="/community/board_home">Community</a></li>
+            <li><a>l</a></li>
+            <li><a href="/books">Books</a></li>
+            <li><a>l</a></li>
+            <li><a href="/game">Game</a></li>
+          </ul>
+        </nav>
+      </header>
+    <br><br><br><br>
+
+<section>
+    <h1>가위바위보 게임</h1>
+    <div>컴퓨터를 이겨라!</div><br><br>
+    <div id="computer"></div>
+    <div>
+        <button id="rock" class="btn">가위</button>
+        <button id="scissor" class="btn">바위</button>
+        <button id="paper" class="btn">보</button>
+    </div>
+    <br>
+    <div id="result"></div>
+    <br>
+    <h3>5승 0패 인증시 경품 증정이...!?</h3>
+    <button id="init">초기화</button>
+    <script src="/static/js/game.js"></script>
+
+</section>
+
+    <footer>
+        <p>서울시 관악구 보라매동 ㅣ TEL:010-0000-0000 ㅣ FAX:000-1234-5678 ㅣ E-mail:yunsell31@gmail.com</p>
+        <p>Copyright Volunteer. All rights reserved.</p>
+      </footer>
+
+    
+</body>
+</html>

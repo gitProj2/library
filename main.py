@@ -16,6 +16,7 @@ def get_conn():
 
 @app.route('/')
 def main():
+    
     return render_template("/main.html")
 
 #로그인 화면
@@ -221,11 +222,46 @@ def member_info_modify():
 
     return render_template("/main.html")
 
+@app.route('/game') # 가볍게 즐기는 가위바위보 게임
+def game():
+    return render_template("/game/game.html")
 
 @app.route('/master/master')
 def master_m():
-    sql = "SELECT NAME, ID, PHONE, EMAIL FROM MEMBER;"
+    c_del = request.args.get("delete")
+    # delete , None
+    conn = get_conn()
+    if c_del is not None:
+        cur = conn.cursor()
+        cur.execute("UPDATE LIBRARY.`MEMBER` SET ID='unknown', PW=1234, PHONE=NULL, EMAIL=NULL, GENDER=NULL, NAME=NULL, BIRTHDAY=NULL WHERE `ID`='{}';".format(c_del))
+        conn.commit()
 
+    result = ""
+    # 로그인 한 값이 있는 경우 DB에서 해당 정보를 불러오고, 없는 경우 로그인 알림창 뜸.
+    if 'number' in session:
+        r_num = session['number']
+        print(r_num)
+    else:
+        result = """
+        <script>
+        alert("관리자만 입장 가능합니다.");
+        </script>
+        """
+        return render_template("/main.html", content=result)
+
+    if r_num == 1: # 마스터계정 번호일경우 접속
+        print(1)
+    else:
+        result = """
+        <script>
+        alert("관리자만 입장 가능합니다.");
+        </script>
+        """
+        return render_template("/main.html", content=result) 
+
+
+    sql = "select NAME, ID, PHONE, EMAIL from MEMBER where ID not in('unknown');"
+    
     try:
         conn = get_conn()
         cur = conn.cursor()
@@ -234,11 +270,12 @@ def master_m():
         result = ""
 
         for (NAME, ID, PHONE, EMAIL) in cur:
+            
             result += """
                 <tbody>
                     <tr>
-                        <td>{0}</td>
                         <td>{1}</td>
+                        <td>{0}</td>
                         <td>{2}</td>
                         <td>{3}</td>
                     </tr>
@@ -259,6 +296,14 @@ def master_m():
 
 @app.route('/master/community')
 def master_c():
+    c_del = request.args.get("delete")
+    # delete , None
+    conn = get_conn()
+    if c_del is not None:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM POST WHERE NUMBER IN ({})".format(c_del))
+        conn.commit()
+
     sql = """
         SELECT m.ID, p.NUMBER, p.title, p.date
         FROM LIBRARY.POST as p
@@ -266,8 +311,8 @@ def master_c():
         on p.MEMBER_NUMBER = m.NUMBER ORDER by p.NUMBER desc;
         """
     result = ""
+
     try:
-        conn = get_conn()
         cur = conn.cursor()
         cur.execute(sql)
 
@@ -304,28 +349,70 @@ def master_c():
     return render_template("/master/community.html", content=result, content1=for_rotation_counting)
 
 
-@app.route('/master/books')
+@app.route('/master/books', methods=['GET','POST'])
 def master_b():
-    sql = "SELECT NAME, IMG, LOAN, CONTENTS FROM BOOK;"
-
     try:
         conn = get_conn()
+        if request.method == 'GET':
+            c_del = request.args.get("delete")
+            # delete , None    
+            if c_del is not None:
+                cur = conn.cursor()
+                cur.execute("DELETE FROM BOOK WHERE NUMBER IN ({})".format(c_del))
+                conn.commit()        
+        else:
+            book_name = request.form["book_name"]
+            book_contents = request.form["book_contents"]
+            book_catagory = request.form["book_catagory"]
+            file = request.files['book_file']
+
+            sql = """
+            INSERT INTO LIBRARY.BOOK 
+            (NAME, CONTENTS, CATAGORY_NUMBER, IMG, LOAN) 
+            VALUES(
+            '{0}',
+            '{1}', 
+            (SELECT `NUMBER` FROM CATAGORY_BOOK WHERE NAME = '{2}'), 
+            '/static/image/books/{3}', 
+            'Y'
+            )""".format(book_name, book_contents, book_catagory, file.filename)
+
+            cur = conn.cursor()
+            cur.execute(sql)
+            conn.commit()
+
+            file.save(os.path.join('./static/image/books', file.filename))
+
+
+        sql = "SELECT NAME, IMG, LOAN, CONTENTS, NUMBER FROM BOOK;"
+
         cur = conn.cursor()
         cur.execute(sql)
 
         result = ""
 
-        for (NAME, IMG, LOAN, CONTENTS) in cur:
+        for (NAME, IMG, LOAN, CONTENTS, NUMBER) in cur:
             result += """
                 <div class="book">
                     <input type="image" src="{1}" alt="책" width="100px" height="160px" style="margin-right:15px;">
-                    <span style="font-size:22px; position:absolute;">{3}</span><br>
-                    <span style="font-size:18px; color:blue;">{0}</span>
+                    <span id="exa" style="font-size:16px;">{3}</span><br><br>
+                    <span style="font-size:18px; color:blue; font-weight: bold;">{0} (책번호 : {4})</span>
                     <span style=font-size:25px;> / <span>
-                    <span style=font-size:18px;>대여여부 : </span>
-                    <span style=color:red;>{2}</span><br><br><br>
+                    <span style="font-size:18px; color:green; font-weight: bold;">대여여부 : </span>
+                    <span style=color:red;>{2}</span>
+                    <br><br><br>
                 </div>
-                """.format(NAME, IMG, LOAN, CONTENTS)
+                """.format(NAME, IMG, LOAN, CONTENTS, NUMBER)
+        
+        sql = "SELECT NUMBER, NAME FROM CATAGORY_BOOK ORDER BY NUMBER "
+        cur = conn.cursor()
+        cur.execute(sql)
+
+        modal_book_catagory = ""
+        for (NUMBER, NAME) in cur:
+            modal_book_catagory += """
+            <option value="{1}">{1}</option>""".format(NUMBER, NAME)
+
     except mariadb.Error as e:
         result = "사용자 없음."
         sys.exit(1)
@@ -335,8 +422,7 @@ def master_b():
         if conn:
             conn.close()
 
-    return render_template("/master/books.html", content=result)
-
+    return render_template("/master/books.html", content=result, catagory_tag=modal_book_catagory)
 
 @app.route('/community/board_home')
 ## 글 작성 버튼 클릭하면 회원여부 확인 후 글 작성 페이지로 이동, 회원이 아니면 경고 메시지 띄우기- 기능 구현 전
@@ -375,7 +461,6 @@ def board_home():
                             <th>{0}</th>
                             <th>{3}</th>
                         </tr>
-                           
                         """.format(id, number, title, date, number)
             # 글 제목에 링크를 걸어 해당 글을 화면 이동
 
@@ -510,13 +595,6 @@ def amend_doc():
     p_number = request.args.get("p_number")
 
     # 해당 경로에서 각기 다른 인자값을 전달 받아 DB 연산을 수행하는 용례
-
-    # tag = request.args.get("tag")
-    # ajax = request.args.get("ajax")
-    # if tag:
-    #     ~~~
-    # elif ajax:
-    #     ~~~~
 
     sql = """ 
         SELECT p.title, p.CONTENTS, p.post_file, p.NUMBER FROM LIBRARY.POST as p
