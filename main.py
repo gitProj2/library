@@ -16,7 +16,6 @@ def get_conn():
 
 @app.route('/')
 def main():
-    session.clear()
     return render_template("/main.html")
 
 #로그인 화면
@@ -65,6 +64,12 @@ def check_id():
         """
     if login_flag: return render_template('/main.html')
     else: return render_template('/sign_in.html', content=result)
+
+#로그아웃
+@app.route('/sign_out')
+def sign_out():
+    session.clear()
+    return render_template("/main.html")
 
 #회원가입화면
 @app.route('/sign_up')
@@ -531,10 +536,13 @@ def books():
     # catagory_number - 좌측 C, Java 등의 책 카테고리의 DB의 number값
     # title - 책 제목 검색
     # session[number] - login 후 session에 보관하는 회원정보의 number 값(PK)
+    page_number = request.args.get("page_number")
     catagory_number = request.args.get("catagory_number")
     title = request.args.get("title")
+    view_count = 3
+
     if 'number' in session: number = session['number']
-    else : number = ""
+    else: number = ""
 
     try:
         ############################################################################################################
@@ -578,9 +586,18 @@ def books():
             sql += "AND NAME LIKE '%{0}%' ".format(title)
             sql2 += "AND NAME LIKE '%{0}%' ".format(title)
 
+        sql2 += """ORDER BY NUMBER ASC
+        """
 
-        sql2 += "ORDER BY NUMBER ASC "
+        if page_number is not None:
+            page_number = int(page_number)
+            sql2 += "LIMIT {0}, {1} ".format(page_number * view_count, view_count)
+        else:
+            sql2 += "LIMIT  0, {0} ".format(view_count)
+            page_number = 1
+
         sql += sql2
+        print(sql)
         cur = conn.cursor()
         cur.execute(sql)
         result = ""
@@ -610,6 +627,23 @@ def books():
                     result += """
                         <span id="book_borrow_{0}">대여 중</span>
                     </div>""".format(NUMBER)
+
+        paging = ""
+        if page_number != 1:
+            paging += "<a href='/books?page_number={0}".format((page_number - 1))
+            if title is not None:
+                paging += "&title={0}'> < </a>".format(title)
+            else:
+                paging += "'> < </a>".format(title)
+
+        paging += "<a>{0}</a>".format(page_number)
+        paging += "<a href='/books?page_number={0}".format((page_number + 1))
+
+        if title is not None:
+            paging += "&title={0}' > > </a>".format(title)
+        else:
+            paging += "' > > </a>".format(title)
+
     except mariadb.Error as e:
         print(e)
         sys.exit(1)
@@ -619,7 +653,7 @@ def books():
         if conn:
             conn.close()
 
-    return render_template("/books.html", tag=aside, content=result)
+    return render_template("/books.html", tag=aside, content=result, paging=paging)
 
 @app.route('/book_borrow')
 def book_borrow():
