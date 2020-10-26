@@ -2,31 +2,27 @@
 <link rel="stylesheet" href="../static/css/basic.css">
 {% extends "base.html" %}
 {% block section %}
-
-    <section>
+       <section>
         
         <h1>글 보기</h1>
         <hr>
         <input class="float-right" type="button" value="목록으로" onclick="location.href='/community/board_home'">
+
         <br>
-        <h3>인간의...(글 제목)</h3>
-        
-        {{content|safe}} 
+        {{alert|safe}}
+<!--        사용자가 댓글이 달려 있는 자신의 게시글을 수정하려는 경우 경고 메세지 -->
+        {{content|safe}}
+        <br>
+        <p>{{no_com|safe}} {{for_rotation_counting|safe}} 개의 댓글이 있습니다.</p>
 
-        <p>x개의 댓글이 있습니다.</p>
+        {{ com_content | safe }}
 
-        <div class="container">
-          <p>따뜻한 인간은 때까지 뿐이다. 기쁘며, 곧 소담스러운 얼마나 이는 싸인 구하지 봄바람을 위하여서. 맺어, 
-            피가 같이, 청춘의 찾아 가장 봄바람이다. 하는 할지라도 같은 목숨이 것은 눈에 있는 그리하였는가?</p>
-            <input class="float-right" type="button" value="삭제">
-            <input class="float-right" type="button" value="수정">
-            <button class="float-right" disabled><span>작성자 : janson 최종 수정일 : xxxx.xx.xx</span></button> 
-        </div>
-
-        <div class="container">
-          <textarea placeholder="댓글 작성" onfocus="this.placeholder=''" onblur="this.placeholder='댓글 작성'"></textarea>
-          <input class="float-right" type="button" value="등록">     
-        </div>
+        <form action="/community/write_com" method="POST">
+            <div class="container">
+                <textarea name="comment" placeholder="댓글 작성" onfocus="this.placeholder=''" onblur="this.placeholder='댓글 작성'"></textarea>
+                <input class="float-right" type="submit" value="등록" onclick="">
+            </div>
+        </form>
         
     </section>
 {% endblock %}

@@ -3,7 +3,7 @@ section h1{
 }
 
 section p {
-    margin-top: auto; 
+    margin-top: auto;
     margin-bottom: auto;
 }
 
@@ -39,4 +39,4 @@ section div textarea{
 
 section div span{
     color: white;
-} 
+}
