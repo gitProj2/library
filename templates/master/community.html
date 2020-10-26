@@ -1,12 +1,12 @@
-<link rel="stylesheet" href="../../static/css/master.css">
-<link rel="stylesheet" href="../../static/css/tmaster.css">
-<link rel="stylesheet" href="../../static/css/board_home_css.css">
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- "excel download" -->
+<link rel="stylesheet" href="../../static/css/master.css">
+<link rel="stylesheet" href="../../static/css/tmaster.css">
+<link rel="stylesheet" href="../../static/css/board_home_css.css">
+<script src="/static/js/master.js"></script>
+<title>Master Page - Community</title>
 </head>
 <body>
 
@@ -16,123 +16,37 @@
   <li><a href="/master/master">회원</a></li>
   <li><a href="/master/community">게시글</a></li>
   <li><a href="/master/books">도서</a></li>
-  <!-- <img src="./image/logo.png" width="200px" id="logo"> -->
+  <!-- <img src="./image/logo.png" width="200px" id="logo   "> -->
 </ul>
 
 <div class="content">
   <h1 id="title2">게시글</h1><img src="../../static/image/master/member.jpeg" id="member">
-  <p>회원들의 정보와 대출여부를 볼수 있는 곳입니다.</p>
-  <p>- 삭제하기 기능은 추가중입니다 -</p>
-  <input type="button" id="btn" value="삭제하기" onclick="location.href='/community/write_doc'">
-   
-      <section>
-          <div id="t01">
-          <table> 
-              <thead>
-                  <tr>
-                      <th>글 번호</th>
-                      <th>제목</th>
-                      <th>작성자</th>
-                      <th>작성일</th>
-                      <th>최종수정</th>
-                  </tr>
-              </thead>
-      
-              <tr>
-                  <td>1</td>
-                  <td><a href="/community/watch_doc">-----클릭하세요------</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
+  <p>회원들의 게시글을 관리하는 곳입니다.</p>
   
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-  
-              <tr>
-                  <td>1</td>
-                  <td><a href="#글보기">점프 투 파이썬을 읽고서...</a></td>
-                  <td>jhl</td>
-                  <td>2020-09-30</td>
-                  <td>2020-10-01</td>
-              </tr>
-          </table>
-          </div>
-          
-          <br>
-          <form class="inline-block float" action="" method="GET">
-            <input type="text" title="검색">
+<form action="/master/community" method="GET" name="check">
+  <input type="text" id="del" name="delete" placeholder="삭제할 게시글 번호 입력..">
+  <input type="button" id="btn" value="삭제하기" style="margin-left:10px" onclick="button_event()">
+</form>
+
+  <section>
+    <h1>생각 나눔</h1>   
+
+    <div>  
+        <p class="inline-block">게시물 : {{content1 | safe}} 건</p>
+    
+        
+        <form class="inline-block float" action="/community/board_home_search" method="GET">
+            <input placeholder="제목으로 검색" onfocus="this.placeholder=''" onblur="this.placeholder='제목으로 검색'" type="text" name="search_text">
             <input type="submit" value="검색">
         </form>
+    </div>
 
-        <form class="inline-block float">
-            <select>
-                <option value="제목" >제목</option>
-                <option value="작성자">작성자</option>
-            </select>
-        </form>  
+    <br>
+    {{content | safe}}
+    <br>
 
-      </section>
+    <input type="button" style="float: right;" value="글 작성" onclick="location.href='/community/write_doc'"> 
+</section>
+
 </body>
 </html>
