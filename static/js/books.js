@@ -3,14 +3,11 @@ function remove_btn(obj) {
     obj.parentNode.removeChild(obj);
 }
 
-<<<<<<< HEAD
 // 로그인 안하고 대여시 로그인 해주세요 alert창
 function login_alert() {
     alert("로그인을 해주세요");
 }
 
-=======
->>>>>>> origin/sale
 // 도서 대여 ajax
 function borrow_book(book_number, obj) {
     var httpRequest = new XMLHttpRequest();
