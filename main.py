@@ -25,6 +25,14 @@ def main():
 #로그인 화면
 @app.route('/sign_in')
 def sign_in():
+    if 'number' in session:
+        r_num = session['number']
+        alert = """
+                <script>
+                    alert("잘못된 접근입니다.")
+                </script>
+                """
+        return render_template('/main.html', alert=alert)
     return render_template("/sign_in.html")
 
 #로그인 화면에서 입력한 ID와 PW 체크 (DB에 있는지 여부 확인)
@@ -107,7 +115,7 @@ def member_info_insert():
         if conn:
             conn.close()
 
-    return render_template('/main.html')
+    return render_template('/sign_in.html')
 
 @app.route('/check_id2', methods=['POST'])
 def id_check():

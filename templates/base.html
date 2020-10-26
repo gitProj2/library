@@ -14,7 +14,7 @@
         </div>
     
         <div id="top_menu">
-          {% if session["id"] %}
+          {% if session["id"] and session["id"] == "master" %}
           <a> {{ session["id"] }}님 환영합니다.</a>
           <a>l</a>
           <a href="/sign_out">LOGOUT</a>
@@ -22,14 +22,16 @@
           <a href="/member_info">회원정보수정</a>
           <a>l</a>
           <a href="/master/master">MASTER PAGE</a>
+          {% elif session["id"] %}
+          <a> {{ session["id"] }}님 환영합니다.</a>
+          <a>l</a>
+          <a href="/sign_out">LOGOUT</a>
+          <a>l</a>
+          <a href="/member_info">회원정보수정</a>
           {% else %}
           <a href="/sign_in">LOGIN</a>
           <a>l</a>
           <a href="/sign_up">JOIN US</a>
-          <a>l</a>
-          <a href="/member_info">회원정보수정</a>
-          <a>l</a>
-          <a href="/master/master">MASTER PAGE</a>
           {% endif %}
         </div>
     
