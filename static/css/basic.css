@@ -37,6 +37,12 @@ header{
     color: gray;
 }
 
+
+@media screen and (max-width: 600px)
+{ 
+    #top_menu { left: 134px; top: -15px; font-size: xx-small;}
+}
+
 nav{
     position: absolute;
     bottom: -5px;

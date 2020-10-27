@@ -26,6 +26,11 @@ a{text-decoration: none;}
     100% {margin-top:0;}
 }
 
+@media screen and (max-width: 1300px)
+{ 
+    .slide { margin-left: 0px;}
+}
+
 header{
     margin-top: 30px;
     max-width: 100%; height: auto;
