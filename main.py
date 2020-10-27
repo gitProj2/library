@@ -1,7 +1,5 @@
 import sys, mariadb, os
-from flask import Flask, render_template, request, session, send_from_directory
-from werkzeug.utils import secure_filename
-
+from flask import Flask, render_template, request, session
 
 app = Flask(__name__)
 
@@ -19,6 +17,10 @@ def get_conn():
 @app.route('/')
 def opening():
     return render_template("/opening.html")
+
+@app.route('/intro')
+def intro():
+    return render_template("/intro.html")
 
 @app.route('/main')
 def main():
@@ -76,8 +78,10 @@ def check_id():
         alert("아이디 또는 패스워드를 확인 하세요.");
         </script>
         """
-    if login_flag: return render_template('/main.html')
-    else: return render_template('/sign_in.html', content=result)
+    if login_flag:
+        return render_template('/main.html')
+    else:
+        return render_template('/sign_in.html', content=result)
 
 #로그아웃
 @app.route('/sign_out')
@@ -248,6 +252,7 @@ def master_m():
         cur = conn.cursor()
         cur.execute("UPDATE LIBRARY.`MEMBER` SET ID='unknown', PW=1234, PHONE=NULL, EMAIL=NULL, GENDER=NULL, NAME=NULL, BIRTHDAY=NULL WHERE `ID`='{}';".format(c_del))
         conn.commit()
+
 
     result = ""
     # 로그인 한 값이 있는 경우 DB에서 해당 정보를 불러오고, 없는 경우 로그인 알림창 뜸.
@@ -549,116 +554,232 @@ def send_show_doc():
             contents = request.form["contents"]
             post_file = request.files['post_file']
 
-            if title == '':
-                alert = """
-                        <script>
-                            alert("제목을 작성하세요.")
-                        </script>
-                        """
-                return render_template('/main.html', alert=alert)
+            if bool(post_file):
+                if title == '':
+                    alert = """
+                            <script>
+                                alert("제목을 작성하세요.")
+                            </script>
+                            """
+                    return render_template('/main.html', alert=alert)
+
+                else:
+
+                    try:
+                        sql = """
+                            SELECT 1 FROM LIBRARY.POST as p
+                            left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                            WHERE p.TITLE='{0}' AND p.CONTENTS='{1}' AND m.ID ='{2}';
+                        """.format(title, contents, session['id'])
+
+                        conn = get_conn()
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        check_duple = ()
+                        for check_duple in cur:
+                            continue
+
+                        # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
+                        if check_duple ==(1,):
+                            result = """
+                            <script>
+                                alert("이미 동일한 제목과 내용의 글을 작성하셨습니다.")
+                            </script>
+                            """
+                            return render_template('/main.html', alert = result)
+
+                        # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
+                        else:
+
+                            sql = """
+                                INSERT INTO LIBRARY.POST
+                                (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, DATE , VIEW) 
+                                VALUES(
+                                '{0}',
+                                '{1}', 
+                                '/static/community/{2}', 
+                                '{3}', now(),0);""".format(title, session['number'], post_file.filename, contents)
+
+                            cur = conn.cursor()
+                            cur.execute(sql)
+                            conn.commit()
+
+                            post_file.save(os.path.join('./static/community', post_file.filename))
+
+                            sql = """
+                                    SELECT p.NUMBER FROM LIBRARY.POST as p
+                                    where p.MEMBER_NUMBER = {} AND p.TITLE = '{}';
+                                    """.format(session['number'], title)
+
+                            cur = conn.cursor()
+                            cur.execute(sql)
+
+                            g = ()
+                            for g in cur:
+                                continue
+                            p_number = g[0]
+
+                            # remeber_p_number()에 p_number를 저장
+                            check_p_number.insert_p_number(p_number)
+
+                            sql = """ 
+                                    SELECT p.TITLE, p.CONTENTS, m.ID , p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
+                                    from LIBRARY.POST as p
+                                    left join LIBRARY.MEMBER as m
+                                    on p.MEMBER_NUMBER = m.NUMBER 
+                                    WHERE  p.NUMBER IN (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
+                                """.format(title, contents)
+                            cur = conn.cursor()
+                            cur.execute(sql)
+
+                            result = ""
+                            for (title, contents, id, post_file, date, modify_date, p_number) in cur:
+                                modify_date = "수정이력 없음"
+                                result +="""
+                                        <h3>{0}</h3>
+                                        <div class="container">
+                                            <p>{1}</p>
+                                            <div>
+                                                <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                <p class="h_sort">{7}</p>
+                                            </div>
+                                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                        </div>
+                                        <script>
+                                            function delete_check_btn(){{
+                                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                window.location = '/community/delete_doc?p_number={6}';
+                                              }} else{{
+                                                return false;
+                                              }}
+                                           }}
+                                        </script>
+                                        """.format(title, contents, id, post_file, date, modify_date, p_number, os.path.basename(post_file))
+                            no_com = 0
+
+                    except mariadb.Error as e:
+                        print(e)
+
+                    finally:
+                        if conn:
+                            conn.close()
+
+                    return render_template("/community/watch_doc.html", content= result, no_com = no_com)
 
             else:
+                if title == '':
+                    alert = """
+                            <script>
+                                alert("제목을 작성하세요.")
+                            </script>
+                            """
+                    return render_template('/main.html', alert=alert)
 
-                try:
-                    sql = """
-                        SELECT 1 FROM LIBRARY.POST as p
-                        left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
-                        WHERE p.TITLE='{0}' AND p.CONTENTS='{1}' AND m.ID ='{2}';
-                    """.format(title, contents, session['id'])
+                else:
 
-                    conn = get_conn()
-                    cur = conn.cursor()
-                    cur.execute(sql)
-
-                    check_duple = ()
-                    for check_duple in cur:
-                        continue
-
-                    # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
-                    if check_duple ==(1,):
-                        result = """
-                        <script>
-                            alert("이미 동일한 제목과 내용의 글을 작성하셨습니다.")
-                        </script>
-                        """
-                        return render_template('/main.html', alert = result)
-
-                    # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
-                    else:
-
+                    try:
                         sql = """
-                            INSERT INTO LIBRARY.POST
-                            (TITLE, MEMBER_NUMBER, POST_FILE, CONTENTS, DATE , VIEW) 
-                            VALUES(
-                            '{0}',
-                            '{1}', 
-                            '/static/community/{2}', 
-                            '{3}', now(),0);""".format(title, session['number'], post_file.filename, contents)
+                            SELECT 1 FROM LIBRARY.POST as p
+                            left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                            WHERE p.TITLE='{0}' AND p.CONTENTS='{1}' AND m.ID ='{2}';
+                        """.format(title, contents, session['id'])
 
-                        cur = conn.cursor()
-                        cur.execute(sql)
-                        conn.commit()
-
-                        post_file.save(os.path.join('./static/community', post_file.filename))
-
-                        sql = """
-                                SELECT p.NUMBER FROM LIBRARY.POST as p
-                                where p.MEMBER_NUMBER = {} AND p.TITLE = '{}';
-                                """.format(session['number'], title)
-
+                        conn = get_conn()
                         cur = conn.cursor()
                         cur.execute(sql)
 
-                        g = ()
-                        for g in cur:
+                        check_duple = ()
+                        for check_duple in cur:
                             continue
-                        p_number = g[0]
 
-                        # remeber_p_number()에 p_number를 저장
-                        check_p_number.insert_p_number(p_number)
+                        # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
+                        if check_duple == (1,):
+                            result = """
+                            <script>
+                                alert("이미 동일한 제목과 내용의 글을 작성하셨습니다.")
+                            </script>
+                            """
+                            return render_template('/main.html', alert=result)
 
-                        sql = """ 
-                                SELECT p.TITLE, p.CONTENTS, m.ID , p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
-                                from LIBRARY.POST as p
-                                left join LIBRARY.MEMBER as m
-                                on p.MEMBER_NUMBER = m.NUMBER 
-                                WHERE  p.NUMBER IN (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
-                            """.format(title, contents)
-                        cur = conn.cursor()
-                        cur.execute(sql)
+                        # 조회한 회원 id 값과 form으로 받은 값들을 db에 전송한다.
+                        else:
 
-                        result = ""
-                        for (title, contents, id, post_file, date, modify_date, p_number) in cur:
-                            modify_date = "수정이력 없음"
-                            result +="""
-                                    <h3>{0}</h3>
-                                    <div class="container">
-                                        <p>{1}</p>
-                                        <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                                        <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                                    </div>
-                                    <script>
-                                        function delete_check_btn(){{
-                                          if(confirm("정말 삭제하시겠습니까?")==true){{
-                                            window.location = '/community/delete_doc?p_number={6}';
-                                          }} else{{
-                                            return false;
-                                          }}
-                                       }}
-                                    </script>
-                                    """.format(title, contents, id, post_file, date, modify_date, p_number)
-                        no_com = 0
+                            sql = """
+                                INSERT INTO LIBRARY.POST
+                                (TITLE, MEMBER_NUMBER, CONTENTS, DATE , VIEW) 
+                                VALUES(
+                                '{0}',
+                                '{1}', 
+                                '{2}', now(),0);""".format(title, session['number'], contents)
 
-                except mariadb.Error as e:
-                    print(e)
+                            cur = conn.cursor()
+                            cur.execute(sql)
+                            conn.commit()
 
-                finally:
-                    if conn:
-                        conn.close()
+                            sql = """
+                                    SELECT p.NUMBER FROM LIBRARY.POST as p
+                                    where p.MEMBER_NUMBER = {} AND p.TITLE = '{}';
+                                    """.format(session['number'], title)
 
-                return render_template("/community/watch_doc.html", content= result, no_com = no_com)
+                            cur = conn.cursor()
+                            cur.execute(sql)
+
+                            g = ()
+                            for g in cur:
+                                continue
+                            p_number = g[0]
+
+                            # remeber_p_number()에 p_number를 저장
+                            check_p_number.insert_p_number(p_number)
+
+                            sql = """ 
+                                    SELECT p.TITLE, p.CONTENTS, m.ID , p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
+                                    from LIBRARY.POST as p
+                                    left join LIBRARY.MEMBER as m
+                                    on p.MEMBER_NUMBER = m.NUMBER 
+                                    WHERE  p.NUMBER IN (SELECT p.number FROM LIBRARY.POST as p where p.TITLE = '{}' and p.CONTENTS = '{}');
+                                """.format(title, contents)
+                            cur = conn.cursor()
+                            cur.execute(sql)
+
+                            result = ""
+                            for (title, contents, id, post_file, date, modify_date, p_number) in cur:
+                                modify_date = "수정이력 없음"
+                                result += """
+                                        <h3>{0}</h3>
+                                        <div class="container">
+                                            <p>{1}</p>
+                                            <div>
+                                                <a class="h_sort" href ="" download><input type="button" value="첨부파일 다운로드"></a>
+                                                <p class="h_sort">{7}</p>
+                                            </div>
+                                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                        </div>
+                                        <script>
+                                            function delete_check_btn(){{
+                                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                window.location = '/community/delete_doc?p_number={6}';
+                                              }} else{{
+                                                return false;
+                                              }}
+                                           }}
+                                        </script>
+                                        """.format(title, contents, id, post_file, date, modify_date, p_number,"첨부파일 없음")
+                            no_com = 0
+
+                    except mariadb.Error as e:
+                        print(e)
+
+                    finally:
+                        if conn:
+                            conn.close()
+
+                    return render_template("/community/watch_doc.html", content=result, no_com=no_com)
 
         #사용자가 수정한 게시글에서 기존 댓글을 출력한다.
         except:
@@ -668,127 +789,262 @@ def send_show_doc():
             amend_post_file = request.files["amend_file"]
             amend_post_number = request.form["amend_p_number"]
 
-            if bool(amend_title) == False:
-                alert = """
-                        <script>
-                            alert("제목을 작성하세요.")
-                        </script>
-                        """
-                return render_template('/main.html', alert=alert)
+            if bool(amend_post_file) == True:
 
-            else:
+                if bool(amend_title) == False:
+                    alert = """
+                            <script>
+                                alert("제목을 작성하세요.")
+                            </script>
+                            """
+                    return render_template('/main.html', alert=alert)
 
-                try:
-                    # remeber_p_number()에 amend_post_number를 저장
-                    check_p_number.insert_p_number(amend_post_number)
+                else:
 
-                    sql = """
-                            SELECT 1 FROM LIBRARY.POST as p
-                            left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
-                            WHERE p.TITLE='{0}' AND p.CONTENTS='{1}' AND m.ID ='{2}';
-                        """.format(amend_title, amend_contents, session['id'])
-
-                    conn = get_conn()
-                    cur = conn.cursor()
-                    cur.execute(sql)
-
-                    check_duple = ()
-                    for check_duple in cur:
-                        continue
-                    # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
-                    if check_duple == (1,):
-                        result = """
-                                <script>
-                                    alert("이미 동일한 제목과 내용의 글을 작성하셨습니다.")
-                                </script>
-                                """
-                        return render_template('/main.html', alert=result)
-                    else:
-                        sql = """
-                            UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}",
-                            POST_FILE ="/static/community/{2}", MODIFY_DATE = now()
-                            WHERE p.NUMBER = {3};
-                            """.format(amend_title, amend_contents, amend_post_file.filename, amend_post_number)
-
-                        cur = conn.cursor()
-                        cur.execute(sql)
-                        conn.commit()
+                    try:
+                        # remeber_p_number()에 amend_post_number를 저장
+                        check_p_number.insert_p_number(amend_post_number)
 
                         sql = """
-                                SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
-                                FROM LIBRARY.POST as p
-                                left join LIBRARY.MEMBER as m
-                                on p.MEMBER_NUMBER = m.NUMBER
-                                where p.NUMBER ={};
-                            """.format(amend_post_number)
+                                SELECT 1 FROM LIBRARY.POST as p
+                                left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                                WHERE p.TITLE='{0}' AND p.CONTENTS='{1}' AND m.ID ='{2}';
+                            """.format(amend_title, amend_contents, session['id'])
 
-                        cur = conn.cursor()
-                        cur.execute(sql)
-                        result = ""
-                        for (title, contents, id, file, date, modify_date, number) in cur:
-                            result += """
-                                    <h3>{0}</h3>
-                                    <div class="container">
-                                        <p>{1}</p>
-                                        <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                                        <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                                    </div>
-                                    <script>
-                                        function delete_check_btn(){{
-                                          if(confirm("정말 삭제하시겠습니까?")==true){{
-                                            window.location = '/community/delete_doc?p_number={6}';
-                                          }} else{{
-                                            return false;
-                                          }}
-                                       }}
-                                    </script>
-                                    """.format(title, contents, id, file, date, modify_date, number)
-
-                        # 댓글 조회 후 자동 내림차순 정렬
-                        sql = """
-                                SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
-                                from LIBRARY.COMMENT 
-                                where POST_NUMBER = {};
-                            """.format(amend_post_number)
                         conn = get_conn()
                         cur = conn.cursor()
                         cur.execute(sql)
 
-                        comment_result = ""
-                        comment_for_rotation_counting = 0
-                        for (comment, id, date, c_modify_date, c_number) in cur:
-                            comment_for_rotation_counting += 1
-                            comment_result += """
-                                                <div class="container">
-                                                    <p>{0}</p>
-                                                    <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
-                                                    <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
-                                                    <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
-                                                </div>
-                                                <script>
-                                                    function com_delete_check_btn_{4}(){{
-                                                      if(confirm("정말 삭제하시겠습니까?")==true){{
-                                                        window.location = '/community/delete_com?del_c_number={4}';
-                                                      }} else{{
-                                                        return false;
-                                                      }}
-                                                   }}
-                                                </script>
-                                            """.format(comment, id, date, c_modify_date, c_number)
+                        check_duple = ()
+                        for check_duple in cur:
+                            continue
+                        # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
+                        if check_duple == (1,):
+                            result = """
+                                    <script>
+                                        alert("이미 동일한 제목과 내용의 글을 작성하셨습니다.")
+                                    </script>
+                                    """
+                            return render_template('/main.html', alert=result)
+                        else:
+                            sql = """
+                                UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}",
+                                POST_FILE ="/static/community/{2}", MODIFY_DATE = now()
+                                WHERE p.NUMBER = {3};
+                                """.format(amend_title, amend_contents, amend_post_file.filename, amend_post_number)
 
-                except mariadb.Error as e:
+                            cur = conn.cursor()
+                            cur.execute(sql)
+                            conn.commit()
+
+                            amend_post_file.save(os.path.join('./static/community', amend_post_file.filename))
+
+                            sql = """
+                                    SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
+                                    FROM LIBRARY.POST as p
+                                    left join LIBRARY.MEMBER as m
+                                    on p.MEMBER_NUMBER = m.NUMBER
+                                    where p.NUMBER ={};
+                                """.format(amend_post_number)
+
+                            cur = conn.cursor()
+                            cur.execute(sql)
+                            result = ""
+                            for (title, contents, id, file, date, modify_date, number) in cur:
+                                result += """
+                                        <h3>{0}</h3>
+                                        <div class="container">
+                                            <p>{1}</p>
+                                            <div>
+                                                <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                <p class="h_sort">{7}</p>
+                                            </div>                            
+                                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                        </div>
+                                        <script>
+                                            function delete_check_btn(){{
+                                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                window.location = '/community/delete_doc?p_number={6}';
+                                              }} else{{
+                                                return false;
+                                              }}
+                                           }}
+                                        </script>
+                                        """.format(title, contents, id, file, date, modify_date, number, os.path.basename(file))
+
+                            # 댓글 조회 후 자동 내림차순 정렬
+                            sql = """
+                                    SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                                    from LIBRARY.COMMENT 
+                                    where POST_NUMBER = {};
+                                """.format(amend_post_number)
+                            conn = get_conn()
+                            cur = conn.cursor()
+                            cur.execute(sql)
+
+                            comment_result = ""
+                            comment_for_rotation_counting = 0
+                            for (comment, id, date, c_modify_date, c_number) in cur:
+                                comment_for_rotation_counting += 1
+                                comment_result += """
+                                                    <div class="container">
+                                                        <p>{0}</p>
+                                                        <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                                        <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                                        <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                                    </div>
+                                                    <script>
+                                                        function com_delete_check_btn_{4}(){{
+                                                          if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                            window.location = '/community/delete_com?del_c_number={4}';
+                                                          }} else{{
+                                                            return false;
+                                                          }}
+                                                       }}
+                                                    </script>
+                                                """.format(comment, id, date, c_modify_date, c_number)
+
+                    except mariadb.Error as e:
+                            print(e)
+
+                    except mariadb.Error as e:
+                            print(e)
+                            sys.exit(1)
+                    finally:
+                            if conn:
+                                conn.close()
+
+                    return render_template("/community/watch_doc.html", content= result, com_content=comment_result, for_rotation_counting=comment_for_rotation_counting)
+            else:
+
+                if bool(amend_title) == False:
+                    alert = """
+                            <script>
+                                alert("제목을 작성하세요.")
+                            </script>
+                            """
+                    return render_template('/main.html', alert=alert)
+
+                # 수정글에 첨부파일이 없는 경우
+                else:
+
+                    try:
+                        # remeber_p_number()에 amend_post_number를 저장
+                        check_p_number.insert_p_number(amend_post_number)
+
+                        sql = """
+                                SELECT 1 FROM LIBRARY.POST as p
+                                left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                                WHERE p.TITLE='{0}' AND p.CONTENTS='{1}' AND m.ID ='{2}';
+                            """.format(amend_title, amend_contents, session['id'])
+
+                        conn = get_conn()
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        check_duple = ()
+                        for check_duple in cur:
+                            continue
+                        # 회원이 동일한 제목과 동일한 내용의 글을 이미 작성한 경우
+                        if check_duple == (1,):
+                            result = """
+                                    <script>
+                                        alert("이미 동일한 제목과 내용의 글을 작성하셨습니다.")
+                                    </script>
+                                    """
+                            return render_template('/main.html', alert=result)
+                        else:
+                            sql = """
+                                UPDATE LIBRARY.POST as p set TITLE ="{0}", CONTENTS ="{1}", MODIFY_DATE = now()
+                                WHERE p.NUMBER = {2};
+                                """.format(amend_title, amend_contents, amend_post_number)
+
+                            cur = conn.cursor()
+                            cur.execute(sql)
+                            conn.commit()
+
+                            sql = """
+                                    SELECT p.TITLE , p.CONTENTS, m.ID ,p.post_file, p.DATE, p.MODIFY_DATE, p.number
+                                    FROM LIBRARY.POST as p
+                                    left join LIBRARY.MEMBER as m
+                                    on p.MEMBER_NUMBER = m.NUMBER
+                                    where p.NUMBER ={};
+                                """.format(amend_post_number)
+
+                            cur = conn.cursor()
+                            cur.execute(sql)
+                            result = ""
+                            for (title, contents, id, file, date, modify_date, number) in cur:
+                                result += """
+                                        <h3>{0}</h3>
+                                        <div class="container">
+                                            <p>{1}</p>
+                                            <div>
+                                                <a class="h_sort" href ="" disabled download><input type="button" value="첨부파일 다운로드"></a>
+                                                <p class="h_sort">{7}</p>
+                                            </div>                            
+                                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                            <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                        </div>
+                                        <script>
+                                            function delete_check_btn(){{
+                                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                window.location = '/community/delete_doc?p_number={6}';
+                                              }} else{{
+                                                return false;
+                                              }}
+                                           }}
+                                        </script>
+                                        """.format(title, contents, id, file, date, modify_date, number,"첨부파일 없음")
+
+                            # 댓글 조회 후 자동 내림차순 정렬
+                            sql = """
+                                    SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                                    from LIBRARY.COMMENT 
+                                    where POST_NUMBER = {};
+                                """.format(amend_post_number)
+                            conn = get_conn()
+                            cur = conn.cursor()
+                            cur.execute(sql)
+
+                            comment_result = ""
+                            comment_for_rotation_counting = 0
+                            for (comment, id, date, c_modify_date, c_number) in cur:
+                                comment_for_rotation_counting += 1
+                                comment_result += """
+                                                    <div class="container">
+                                                        <p>{0}</p>
+                                                        <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                                        <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                                        <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                                    </div>
+                                                    <script>
+                                                        function com_delete_check_btn_{4}(){{
+                                                          if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                            window.location = '/community/delete_com?del_c_number={4}';
+                                                          }} else{{
+                                                            return false;
+                                                          }}
+                                                       }}
+                                                    </script>
+                                                """.format(comment, id, date, c_modify_date, c_number)
+
+                    except mariadb.Error as e:
                         print(e)
 
-                except mariadb.Error as e:
+                    except mariadb.Error as e:
                         print(e)
                         sys.exit(1)
-                finally:
+                    finally:
                         if conn:
                             conn.close()
 
-                return render_template("/community/watch_doc.html", content= result, com_content=comment_result, for_rotation_counting=comment_for_rotation_counting)
+                    return render_template("/community/watch_doc.html", content=result, com_content=comment_result,
+                                           for_rotation_counting=comment_for_rotation_counting)
+
 
 @app.route('/community/watch_doc', methods = ["GET"])
 def watch_doc():
@@ -797,104 +1053,230 @@ def watch_doc():
     check_p_number.insert_p_number(post_number_temp_bang)
 
     result = ""
-    try:
-        sql = """
-            SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
-            p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
-            left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
-            WHERE p.NUMBER = {};
-            """.format(post_number_temp_bang)
 
-        conn = get_conn()
-        cur = conn.cursor()
-        cur.execute(sql)
+    sql = """
+        SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+        p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+        left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+        WHERE p.NUMBER = {};
+        """.format(post_number_temp_bang)
 
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(sql)
 
+    i = []
+    for i in cur:
+        continue
 
-        for (title, contents, file, id, date, modify_date,p_number) in cur:
-            if modify_date == None:
-                modify_date = "수정 내역 없음"
+    if bool(i[2]) == True:
 
-                result += """
-                        <h3>{0}</h3>
-                        <div class="container">
-                            <p>{1}</p>
-                            <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                            <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                        </div>
-                        <script>
-                            function delete_check_btn(){{
-                              if(confirm("정말 삭제하시겠습니까?")==true){{
-                                window.location = '/community/delete_doc?p_number={6}';
-                              }} else{{
-                                return false;
-                              }}
-                           }}
-                        </script>
-                        """.format(title, contents, file, id, date, modify_date, p_number)
-            else:
-                result += """
+        try:
+            sql = """
+                    SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                    p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                    left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                    WHERE p.NUMBER = {};
+                    """.format(post_number_temp_bang)
+
+            cur = conn.cursor()
+            cur.execute(sql)
+
+            for (title, contents, file, id, date, modify_date,p_number) in cur:
+                if modify_date == None:
+                    modify_date = "None"
+
+                    result += """
                             <h3>{0}</h3>
-                        <div class="container">
-                            <p>{1}</p>
-                            <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                            <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                        </div>
-                        <script>
-                            function delete_check_btn(){{
-                              if(confirm("정말 삭제하시겠습니까?")==true){{
-                                window.location = '/community/delete_doc?p_number={6}';
-                              }} else{{
-                                return false;
-                              }}
-                           }}
-                        </script>
-                        """.format(title, contents, file, id, date, modify_date, p_number)
-
-
-        sql = """
-                SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
-                from LIBRARY.COMMENT 
-                where POST_NUMBER = {};
-            """.format(post_number_temp_bang)
-
-        cur = conn.cursor()
-        cur.execute(sql)
-
-        comment_result = ""
-        comment_for_rotation_counting = 0
-        for (comment, id, date, c_modify_date, c_number) in cur:
-            comment_for_rotation_counting += 1
-            comment_result += """
                             <div class="container">
-                                <p>{0}</p>
-                                <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
-                                <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
-                                <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                <p>{1}</p>
+                                <div>
+                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <p class="h_sort">{7}</p>
+                                </div>                                 
+                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
                             </div>
                             <script>
-                                function com_delete_check_btn_{4}(){{
+                                function delete_check_btn(){{
                                   if(confirm("정말 삭제하시겠습니까?")==true){{
-                                    window.location = '/community/delete_com?del_c_number={4}';
+                                    window.location = '/community/delete_doc?p_number={6}';
                                   }} else{{
                                     return false;
                                   }}
                                }}
                             </script>
-                        """.format(comment, id, date, c_modify_date, c_number)
+                            """.format(title, contents, file, id, date, modify_date, p_number, os.path.basename(file))
+                else:
+                    result += """
+                            <h3>{0}</h3>
+                            <div class="container">
+                                <p>{1}</p>
+                                <div>
+                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <p class="h_sort">{7}</p>
+                                </div>                                
+                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                            </div>
+                            <script>
+                                function delete_check_btn(){{
+                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                    window.location = '/community/delete_doc?p_number={6}';
+                                  }} else{{
+                                    return false;
+                                  }}
+                               }}
+                            </script>
+                            """.format(title, contents, file, id, date, modify_date, p_number, os.path.basename(file))
 
-    except mariadb.Error as e:
-        print(e)
-    finally:
-        if conn:
-            conn.close()
 
-    return render_template("/community/watch_doc.html", content= result, com_content = comment_result, for_rotation_counting = comment_for_rotation_counting)
-    #연산한 결과를 watch_doc.html에서 전달 받아 이를 출력
+            sql = """
+                    SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                    from LIBRARY.COMMENT 
+                    where POST_NUMBER = {};
+                """.format(post_number_temp_bang)
+
+            cur = conn.cursor()
+            cur.execute(sql)
+
+            comment_result = ""
+            comment_for_rotation_counting = 0
+            for (comment, id, date, c_modify_date, c_number) in cur:
+                comment_for_rotation_counting += 1
+                comment_result += """
+                                <div class="container">
+                                    <p>{0}</p>
+                                    <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                    <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                    <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                </div>
+                                <script>
+                                    function com_delete_check_btn_{4}(){{
+                                      if(confirm("정말 삭제하시겠습니까?")==true){{
+                                        window.location = '/community/delete_com?del_c_number={4}';
+                                      }} else{{
+                                        return false;
+                                      }}
+                                   }}
+                                </script>
+                            """.format(comment, id, date, c_modify_date, c_number)
+
+        except mariadb.Error as e:
+            print(e)
+
+        finally:
+            if conn:
+                conn.close()
+
+        return render_template("/community/watch_doc.html", content= result, com_content = comment_result, for_rotation_counting = comment_for_rotation_counting)
+        #연산한 결과를 watch_doc.html에서 전달 받아 이를 출력
+    
+    else:
+        try:
+            sql = """
+                    SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                    from LIBRARY.COMMENT 
+                    where POST_NUMBER = {};
+                """.format(post_number_temp_bang)
+
+            cur = conn.cursor()
+            cur.execute(sql)
+
+            comment_result = ""
+            comment_for_rotation_counting = 0
+            for (comment, id, date, c_modify_date, c_number) in cur:
+                comment_for_rotation_counting += 1
+                comment_result += """
+                                    <div class="container">
+                                        <p>{0}</p>
+                                        <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                        <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                        <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                    </div>
+                                    <script>
+                                        function com_delete_check_btn_{4}(){{
+                                          if(confirm("정말 삭제하시겠습니까?")==true){{
+                                            window.location = '/community/delete_com?del_c_number={4}';
+                                          }} else{{
+                                            return false;
+                                          }}
+                                       }}
+                                    </script>
+                                """.format(comment, id, date, c_modify_date, c_number)
+
+            sql = """
+                SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                WHERE p.NUMBER = {};
+                """.format(post_number_temp_bang)
+
+            cur = conn.cursor()
+            cur.execute(sql)
+
+            result = ''
+            for (title, contents, file, id, date, modify_date,p_number) in cur:
+                if modify_date == None:
+                    modify_date = "None"
+
+                    result += """
+                            <h3>{0}</h3>
+                            <div class="container">
+                                <p>{1}</p>
+                                <div>
+                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <p class="h_sort">{7}</p>
+                                </div>                                 
+                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                            </div>
+                            <script>
+                                function delete_check_btn(){{
+                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                    window.location = '/community/delete_doc?p_number={6}';
+                                  }} else{{
+                                    return false;
+                                  }}
+                               }}
+                            </script>
+                            """.format(title, contents, file, id, date, modify_date, p_number, "첨부파일 없음")
+                else:
+                    result += """
+                            <h3>{0}</h3>
+                            <div class="container">
+                                <p>{1}</p>
+                                <div>
+                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <p class="h_sort">{7}</p>
+                                </div>                                
+                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                            </div>
+                            <script>
+                                function delete_check_btn(){{
+                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                    window.location = '/community/delete_doc?p_number={6}';
+                                  }} else{{
+                                    return false;
+                                  }}
+                               }}
+                            </script>
+                            """.format(title, contents, file, id, date, modify_date, p_number, "첨부파일 없음")
+
+        except mariadb.Error as e:
+            print(e)
+
+        finally:
+            if conn:
+                conn.close()
+
+        return render_template("/community/watch_doc.html", content= result, com_content = comment_result, for_rotation_counting = comment_for_rotation_counting)
+        #연산한 결과를 watch_doc.html에서 전달 받아 이를 출력
 
 
 @app.route('/community/write_doc')#사용자가 글 작성 메뉴를 클릭하면 이동되는 화면
@@ -967,6 +1349,40 @@ def amend_doc():
                 </script>
             """
 
+            #  댓글, 파일 다운로드 추가
+
+            sql = """
+                    SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                    from LIBRARY.COMMENT 
+                    where POST_NUMBER = {};
+                """.format(p_number)
+            conn = get_conn()
+            cur = conn.cursor()
+            cur.execute(sql)
+
+            comment_result = ""
+            comment_for_rotation_counting = 0
+            for (comment, id, date, c_modify_date, c_number) in cur:
+                comment_for_rotation_counting += 1
+                comment_result += """
+                                    <div class="container">
+                                        <p>{0}</p>
+                                        <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                        <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                        <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                    </div>
+                                    <script>
+                                        function com_delete_check_btn_{4}(){{
+                                          if(confirm("정말 삭제하시겠습니까?")==true){{
+                                            window.location = '/community/delete_com?del_c_number={4}';
+                                          }} else{{
+                                            return false;
+                                          }}
+                                       }}
+                                    </script>
+                                """.format(comment, id, date, c_modify_date, c_number)
+
+
             sql = """
                 SELECT p.TITLE , p.CONTENTS, m.ID ,p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER
                 FROM LIBRARY.POST as p
@@ -989,7 +1405,10 @@ def amend_doc():
                                 <h3>{0}</h3>
                                 <div class="container">
                                     <p>{1}</p>
-                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <div>
+                                            <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                            <p class="h_sort">{7}</p>
+                                    </div>
                                     <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                                     <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                                     <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>
@@ -1003,13 +1422,16 @@ def amend_doc():
                                       }}
                                    }}
                                 </script>
-                                """.format(title, contents, id, post_file, date, modify_date, p_number)
+                                """.format(title, contents, id, post_file, date, modify_date, p_number, os.path.basename(post_file))
                     else:
                         result += """
                                 <h3>{0}</h3>
                                 <div class="container">
                                     <p>{1}</p>
-                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <div>
+                                            <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                            <p class="h_sort">{7}</p>
+                                    </div>
                                     <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                                     <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                                     <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>
@@ -1023,8 +1445,7 @@ def amend_doc():
                                       }}
                                    }}
                                 </script>
-                                """.format(title, contents, id, post_file, date, modify_date,
-                                           p_number)
+                                """.format(title, contents, id, post_file, date, modify_date,p_number, os.path.basename(post_file))
 
             except mariadb.Error as e:
                 print(e)
@@ -1032,7 +1453,7 @@ def amend_doc():
                 if conn:
                     conn.close()
 
-            return render_template('/community/watch_doc.html', content =result, alert=alert)
+            return render_template('/community/watch_doc.html', content =result, alert=alert, com_content=comment_result, for_rotation_counting=comment_for_rotation_counting)
 
     # 로그인 하지 않고 수정 버튼 누른 경우
     else:
@@ -1041,6 +1462,40 @@ def amend_doc():
                     alert("수정 권한이 없습니다.")
                 </script>
                 """
+        #댓글 조회와 파일 다운로드 추가
+
+        sql = """
+                SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                from LIBRARY.COMMENT 
+                where POST_NUMBER = {};
+            """.format(p_number)
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+
+        comment_result = ""
+        comment_for_rotation_counting = 0
+        for (comment, id, date, c_modify_date, c_number) in cur:
+            comment_for_rotation_counting += 1
+            comment_result += """
+                                <div class="container">
+                                    <p>{0}</p>
+                                    <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                    <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                    <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                </div>
+                                <script>
+                                    function com_delete_check_btn_{4}(){{
+                                      if(confirm("정말 삭제하시겠습니까?")==true){{
+                                        window.location = '/community/delete_com?del_c_number={4}';
+                                      }} else{{
+                                        return false;
+                                      }}
+                                   }}
+                                </script>
+                            """.format(comment, id, date, c_modify_date, c_number)
+        
+
         sql = """
             SELECT p.TITLE , p.CONTENTS, m.ID ,p.POST_FILE, p.DATE, p.MODIFY_DATE ,p.NUMBER
             FROM LIBRARY.POST as p
@@ -1063,7 +1518,10 @@ def amend_doc():
                             <h3>{0}</h3>
                             <div class="container">
                                 <p>{1}</p>
-                                <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                <div>
+                                    <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <p class="h_sort">{7}</p>
+                                </div>
                                 <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                                 <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                                 <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>
@@ -1077,13 +1535,16 @@ def amend_doc():
                                   }}
                                }}
                             </script>
-                            """.format(title, contents, id, post_file, date, modify_date, p_number)
+                            """.format(title, contents, id, post_file, date, modify_date, p_number, os.path.basename(post_file))
                 else:
                     result += """
                                 <h3>{0}</h3>
                                 <div class="container">
                                     <p>{1}</p>
-                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                    <div>
+                                        <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                        <p class="h_sort">{7}</p>
+                                    </div> 
                                     <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                                     <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                                     <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>
@@ -1097,7 +1558,7 @@ def amend_doc():
                                       }}
                                    }}
                                 </script>
-                                """.format(title, contents, id, post_file, date, modify_date, p_number)
+                                """.format(title, contents, id, post_file, date, modify_date, p_number, os.path.basename(post_file))
 
         except mariadb.Error as e:
             print(e)
@@ -1105,7 +1566,7 @@ def amend_doc():
             if conn:
                 conn.close()
 
-        return render_template('/community/watch_doc.html', content=result, alert = alert)
+        return render_template('/community/watch_doc.html', content=result, alert = alert, com_content=comment_result, for_rotation_counting=comment_for_rotation_counting)
 
 # 사용자가 게시글 삭제 버튼을 누르고 alert 창에서 확인 버튼을 누르면 넘어오는 함수. GET방식으로 p_number 값이 함께 넘어온다.
 @app.route('/community/delete_doc', methods = ["GET"])
@@ -1191,7 +1652,7 @@ def delete_query():
                     for (title, contents, file, id, date, modify_date, p_number) in cur:
                         result = ""
                         if modify_date == None:
-                            modify_date = "수정 내역 없음"
+                            modify_date = "None"
 
                             result += """
                                     <h3>{0}</h3>
@@ -1319,23 +1780,55 @@ def delete_query():
 
             return render_template("/community/board_home.html", content=result, content1 = for_rotation_counting)
         # 로그인한 사용자가 다른 사용자의 글을 삭제하려는 경우
+
         else:
             alert = """
                     <script>
                         alert("삭제 권한이 없습니다.")
                     </script>
                 """
-
-            sql = """
-                SELECT p.TITLE , p.CONTENTS, m.ID ,p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
-                FROM LIBRARY.POST as p
-                left join LIBRARY.MEMBER as m
-                on p.MEMBER_NUMBER = m.NUMBER
-                where p.NUMBER ={};
-                """.format(p_number)
-            result = ""
-
             try:
+                sql = """
+                        SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
+                        from LIBRARY.COMMENT 
+                        where POST_NUMBER = {};
+                    """.format(p_number)
+
+                conn = get_conn()
+                cur = conn.cursor()
+                cur.execute(sql)
+
+                comment_result = ""
+                comment_for_rotation_counting = 0
+                for (comment, id, date, c_modify_date, c_number) in cur:
+                    comment_for_rotation_counting += 1
+                    comment_result += """
+                                        <div class="container">
+                                            <p>{0}</p>
+                                            <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                            <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                            <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                        </div>
+                                        <script>
+                                            function com_delete_check_btn_{4}(){{
+                                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                window.location = '/community/delete_com?del_c_number={4}';
+                                              }} else{{
+                                                return false;
+                                              }}
+                                           }}
+                                        </script>
+                                    """.format(comment, id, date, c_modify_date, c_number)
+
+                sql = """
+                        SELECT p.TITLE , p.CONTENTS, m.ID ,p.POST_FILE, p.DATE, p.MODIFY_DATE, p.NUMBER 
+                        FROM LIBRARY.POST as p
+                        left join LIBRARY.MEMBER as m
+                        on p.MEMBER_NUMBER = m.NUMBER
+                        where p.NUMBER ={};
+                        """.format(p_number)
+                result = ""
+
                 conn = get_conn()
                 cur = conn.cursor()
                 cur.execute(sql)
@@ -1348,7 +1841,10 @@ def delete_query():
                                 <h3>{0}</h3>
                                 <div class="container">
                                     <p>{1}</p>
-                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                    <div>
+                                        <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                        <p class="h_sort">{7}</p>
+                                    </div>                         
                                     <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                                     <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                                     <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
@@ -1362,13 +1858,16 @@ def delete_query():
                                       }}
                                    }}
                                 </script>
-                                """.format(title, contents, id, post_file, date, modify_date, p_number)
+                                """.format(title, contents, id, post_file, date, modify_date, p_number, os.path.basename(post_file))
                     else:
                         result += """
                                 <h3>{0}</h3>
                                 <div class="container">
                                     <p>{1}</p>
-                                    <a href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>                              
+                                    <div>
+                                        <a class="h_sort" href ="{3}" download><input type="button" value="첨부파일 다운로드"></a>
+                                        <p class="h_sort">{7}</p>
+                                    </div>                            
                                     <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                                     <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                                     <button class="float-right" disabled><span style="color: white;">작성자 : {2} 작성일시 : {4} 최종 수정 : {5}</span></button>    
@@ -1383,14 +1882,14 @@ def delete_query():
                                    }}
                                 </script>
                                 """.format(title, contents, id, post_file, date, modify_date,
-                                           p_number)
+                                           p_number, os.path.basename(post_file))
             except mariadb.Error as e:
                 print(e)
             finally:
                 if conn:
                     conn.close()
 
-            return render_template('/community/watch_doc.html', content=result, alert=alert)
+            return render_template('/community/watch_doc.html', content=result, alert=alert, com_content=comment_result, for_rotation_counting=comment_for_rotation_counting)
 
     # 비 로그인 상태
     else:
@@ -1460,65 +1959,142 @@ def write_com():
                     for (comment, id, date, c_modify_date, c_number) in cur:
                         comment_for_rotation_counting += 1
                         comment_result += """
-                                                <div class="container">
-                                                    <p>{0}</p>
-                                                    <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
-                                                    <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
-                                                    <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
-                                                </div>
-                                                <script>
-                                                    function com_delete_check_btn_{4}(){{
-                                                      if(confirm("정말 삭제하시겠습니까?")==true){{
-                                                        window.location = '/community/delete_com?del_c_number={4}';
-                                                      }} else{{
-                                                        return false;
-                                                      }}
-                                                   }}
-                                                </script>
-                                            """.format(comment, id, date, c_modify_date, c_number)
+                                            <div class="container">
+                                                <p>{0}</p>
+                                                <input class="float-right" type="button" value="삭제" onclick="javascript : com_delete_check_btn_{4}()">
+                                                <input class="float-right" type="button" value="수정" onclick = "location.href='/community/amend_com?c_number={4}'">
+                                                <button class="float-right" disabled><span>작성자 : {1} 작성일시 : {2} 최종 수정일 : {3}</span></button> 
+                                            </div>
+                                            <script>
+                                                function com_delete_check_btn_{4}(){{
+                                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                    window.location = '/community/delete_com?del_c_number={4}';
+                                                  }} else{{
+                                                    return false;
+                                                  }}
+                                               }}
+                                            </script>
+                                        """.format(comment, id, date, c_modify_date, c_number)
                     sql = """
-                            SELECT p.TITLE , p.CONTENTS, p.POST_FILE, m.ID, p.DATE, p.MODIFY_DATE, p.NUMBER
-                            FROM LIBRARY.POST as p
-                            left join LIBRARY.MEMBER as m
-                            on p.MEMBER_NUMBER = m.NUMBER
-                            where p.NUMBER ={};
-                        """.format(p_number)
+                           SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                           p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                           left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                           WHERE p.NUMBER = {};
+                           """.format(p_number)
 
                     cur = conn.cursor()
                     cur.execute(sql)
 
-                    result = ""
-                    for (title, contents, file, id, date, modify_date, p_number) in cur:
-                        if modify_date == None:
-                            modify_date = "수정 내역 없음"
+                    i = []
+                    for i in cur:
+                        continue
 
-                            result += """
+                    if bool(i[2]) == True:
+                        sql = """
+                           SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                           p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                           left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                           WHERE p.NUMBER = {};
+                           """.format(p_number)
+
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        for (title, contents, file, id, date, modify_date, p_number) in cur:
+                            if modify_date == None:
+                                modify_date = "None"
+                                result = ''
+                                result += """
+                                            <h3>{0}</h3>
+                                            <div class="container">
+                                                <p>{1}</p>
+                                                <div>
+                                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                    <p class="h_sort">{7}</p>
+                                                </div>                                 
+                                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                            </div>
+                                            <script>
+                                                function delete_check_btn(){{
+                                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                    window.location = '/community/delete_doc?p_number={6}';
+                                                  }} else{{
+                                                    return false;
+                                                  }}
+                                               }}
+                                            </script>
+                                            """.format(title, contents, file, id, date, modify_date,p_number, os.path.basename(file))
+                            else:
+                                result += """
+                                        <h3>{0}</h3>
+                                        <div class="container">
+                                            <p>{1}</p>
+                                            <div>
+                                                <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                <p class="h_sort">{7}</p>
+                                            </div>                                
+                                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                            <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                        </div>
+                                        <script>
+                                            function delete_check_btn(){{
+                                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                window.location = '/community/delete_doc?p_number={6}';
+                                              }} else{{
+                                                return false;
+                                              }}
+                                           }}
+                                        </script>
+                                        """.format(title, contents, file, id, date, modify_date, p_number, os.path.basename(file))
+                    else:
+                        sql = """
+                                SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                                p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                                left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                                WHERE p.NUMBER = {};
+                                """.format(p_number)
+
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        for (title, contents, file, id, date, modify_date, p_number) in cur:
+                            if modify_date == None:
+                                modify_date = "None"
+                                result = ''
+                                result += """
+                                        <h3>{0}</h3>
+                                        <div class="container">
+                                            <p>{1}</p>
+                                            <div>
+                                                <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                <p class="h_sort">{7}</p>
+                                            </div>                                 
+                                            <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                            <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                            <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                        </div>
+                                        <script>
+                                            function delete_check_btn(){{
+                                              if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                window.location = '/community/delete_doc?p_number={6}';
+                                              }} else{{
+                                                return false;
+                                              }}
+                                           }}
+                                        </script>
+                                        """.format(title, contents, file, id, date, modify_date, p_number,"첨부파일 없음")
+                            else:
+                                result += """
                                     <h3>{0}</h3>
                                     <div class="container">
                                         <p>{1}</p>
-                                        <br>
-                                        <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                                        <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                                    </div>
-                                    <script>
-                                        function delete_check_btn(){{
-                                          if(confirm("정말 삭제하시겠습니까?")==true){{
-                                            window.location = '/community/delete_doc?delete_com={6}';
-                                          }} else{{
-                                            return false;
-                                          }}
-                                       }}
-                                    </script>
-                                    """.format(title, contents, file, id, date, modify_date, p_number)
-                        else:
-                            result += """
-                                    <h3>{0}</h3>
-                                    <div class="container">
-                                        <p>{1}</p>
-                                        <br>
-                                        <a href ="{2}" download class="margin-left"><input type="button" value="첨부파일 다운로드"></a> 
+                                        <div>
+                                            <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                            <p class="h_sort">{7}</p>
+                                        </div>                                
                                         <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
                                         <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
                                         <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
@@ -1532,8 +2108,7 @@ def write_com():
                                           }}
                                        }}
                                     </script>
-                                    """.format(title, contents, file, id, date, modify_date, p_number)
-
+                                    """.format(title, contents, file, id, date, modify_date, p_number, "첨부파일 없음")
             except mariadb.Error as e:
                 print(e)
                 sys.exit(1)
@@ -1545,6 +2120,7 @@ def write_com():
             return render_template('/community/watch_doc.html', com_content=comment_result, for_rotation_counting=comment_for_rotation_counting, content = result)
 
         except:
+
             try:
                 amend_comment = request.form["amend_com"]
                 amend_c_number = request.form["amend_c_number"]
@@ -1617,21 +2193,12 @@ def write_com():
                     p_number = j[0]
                     p_number = int(p_number)
 
+                    #댓글 조회후 자동 정렬
                     sql = """
                         SELECT c.COMMENT, c.MEMBER_ID, c.`DATE` , c.MODIFY_DATE, c.COMMENT_NUMBER
                         FROM LIBRARY.COMMENT as c
                         where c.POST_NUMBER = {};
                     """.format(p_number)
-
-                    cur = conn.cursor()
-                    cur.execute(sql)
-
-                    # 댓글 조회 후 자동 내림차순 정렬
-                    sql = """
-                            SELECT COMMENT, MEMBER_ID, DATE, MODIFY_DATE, COMMENT_NUMBER 
-                            from LIBRARY.COMMENT 
-                            where POST_NUMBER = {};
-                        """.format(p_number)
 
                     cur = conn.cursor()
                     cur.execute(sql)
@@ -1658,64 +2225,146 @@ def write_com():
                                         </script>
                                     """.format(comment, id, date, c_modify_date, c_number)
 
-
-                    sql="""
-                        SELECT p.TITLE , p.CONTENTS, p.POST_FILE, m.ID, p.DATE, p.MODIFY_DATE
-                        from LIBRARY.POST as p
-                        left JOIN LIBRARY.`MEMBER` as m
-                        on p.MEMBER_NUMBER = m.`NUMBER`
-                        WHERE p.`NUMBER` = {};
-                    """.format(p_number)
+                    sql = """
+                       SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                       p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                       left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                       WHERE p.NUMBER = {};
+                       """.format(p_number)
 
                     cur = conn.cursor()
                     cur.execute(sql)
 
-                    result = ""
-                    for (title, contents, file, p_id, p_date, p_modify_date) in cur:
-                        if p_modify_date == None:
-                            p_modify_date = "수정 내역 없음"
+                    i = []
+                    for i in cur:
+                        continue
 
-                            result += """
-                                    <h3>{0}</h3>
-                                    <div class="container">
-                                        <p>{1}</p>
-                                        <br>
-                                        <a href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>                              
-                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                                        <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                                    </div>
-                                    <script>
-                                        function delete_check_btn(){{
-                                          if(confirm("정말 삭제하시겠습니까?")==true){{
-                                            window.location = '/community/delete_doc?p_number={6}';
-                                          }} else{{
-                                            return false;
-                                          }}
-                                       }}
-                                    </script>
-                                    """.format(title, contents, file, p_id, p_date, p_modify_date, p_number)
-                        else:
-                            result += """
-                                    <h3>{0}</h3>
-                                    <div class="container">
-                                        <p>{1}</p>
-                                        <br>
-                                        <a href ="{2}" download class="margin-left"><input type="button" value="첨부파일 다운로드"></a> 
-                                        <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
-                                        <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
-                                        <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
-                                    </div>
-                                    <script>
-                                        function delete_check_btn(){{
-                                          if(confirm("정말 삭제하시겠습니까?")==true){{
-                                            window.location = '/community/delete_doc?p_number={6}';
-                                          }} else{{
-                                            return false;
-                                          }}
-                                       }}
-                                    </script>
-                                    """.format(title, contents, file, p_id, p_date, p_modify_date, p_number)
+                    if bool(i[2]) == True:
+                        sql = """
+                           SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                           p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                           left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                           WHERE p.NUMBER = {};
+                           """.format(p_number)
+
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        for (title, contents, file, id, date, modify_date, p_number) in cur:
+                            if modify_date == None:
+                                modify_date = "None"
+
+                                result = ''
+                                result += """
+                                            <h3>{0}</h3>
+                                            <div class="container">
+                                                <p>{1}</p>
+                                                <div>
+                                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                    <p class="h_sort">{7}</p>
+                                                </div>                                 
+                                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                            </div>
+                                            <script>
+                                                function delete_check_btn(){{
+                                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                    window.location = '/community/delete_doc?p_number={6}';
+                                                  }} else{{
+                                                    return false;
+                                                  }}
+                                               }}
+                                            </script>
+                                            """.format(title, contents, file, id, date, modify_date, p_number,
+                                                       os.path.basename(file))
+                            else:
+                                result += """
+                                            <h3>{0}</h3>
+                                            <div class="container">
+                                                <p>{1}</p>
+                                                <div>
+                                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                    <p class="h_sort">{7}</p>
+                                                </div>                                
+                                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                            </div>
+                                            <script>
+                                                function delete_check_btn(){{
+                                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                    window.location = '/community/delete_doc?p_number={6}';
+                                                  }} else{{
+                                                    return false;
+                                                  }}
+                                               }}
+                                            </script>
+                                            """.format(title, contents, file, id, date, modify_date, p_number,
+                                                       os.path.basename(file))
+                    else:
+                        sql = """
+                                SELECT p.title, p.CONTENTS, p.post_file, m.id, p.date,
+                                p.MODIFY_DATE, p.number FROM LIBRARY.POST as p
+                                left join LIBRARY.MEMBER as m on p.MEMBER_NUMBER = m.NUMBER
+                                WHERE p.NUMBER = {};
+                                """.format(p_number)
+
+                        cur = conn.cursor()
+                        cur.execute(sql)
+
+                        result = ''
+                        for (title, contents, file, id, date, modify_date, p_number) in cur:
+                            if modify_date == None:
+                                modify_date = "None"
+
+                                result += """
+                                            <h3>{0}</h3>
+                                            <div class="container">
+                                                <p>{1}</p>
+                                                <div>
+                                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                    <p class="h_sort">{7}</p>
+                                                </div>                                 
+                                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                            </div>
+                                            <script>
+                                                function delete_check_btn(){{
+                                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                    window.location = '/community/delete_doc?p_number={6}';
+                                                  }} else{{
+                                                    return false;
+                                                  }}
+                                               }}
+                                            </script>
+                                            """.format(title, contents, file, id, date, modify_date, p_number,
+                                                       "첨부파일 없음")
+                            else:
+                                result += """
+                                            <h3>{0}</h3>
+                                            <div class="container">
+                                                <p>{1}</p>
+                                                <div>
+                                                    <a class="h_sort" href ="{2}" download><input type="button" value="첨부파일 다운로드"></a>
+                                                    <p class="h_sort">{7}</p>
+                                                </div>                                
+                                                <input class="float-right" type="button" value="삭제" onclick="javascript : delete_check_btn()">
+                                                <input class="float-right" type="button" value="수정" onclick="location.href='/community/amend_doc?p_number={6}'">
+                                                <button class="float-right" disabled><span style="color: white;">작성자 : {3} 작성일시 : {4} 최종 수정 : {5}</span></button>    
+                                            </div>
+                                            <script>
+                                                function delete_check_btn(){{
+                                                  if(confirm("정말 삭제하시겠습니까?")==true){{
+                                                    window.location = '/community/delete_doc?p_number={6}';
+                                                  }} else{{
+                                                    return false;
+                                                  }}
+                                               }}
+                                            </script>
+                                            """.format(title, contents, file, id, date, modify_date, p_number,
+                                                       "첨부파일 없음")
             except mariadb.Error as e:
                 print(e)
                 sys.exit(1)
@@ -1734,6 +2383,7 @@ def write_com():
             </script>
         """
         return render_template('/sign_in.html', alert = result)
+
 # 댓글 수정 버튼 누르면 넘어 오는 라우트 함수
 @app.route('/community/amend_com', methods =['GET'])
 def amend_com():
@@ -1872,10 +2522,8 @@ def books():
     # catagory_number - 좌측 C, Java 등의 책 카테고리의 DB의 number값
     # title - 책 제목 검색
     # session[number] - login 후 session에 보관하는 회원정보의 number 값(PK)
-    page_number = request.args.get("page_number")
     catagory_number = request.args.get("catagory_number")
     title = request.args.get("title")
-    view_count = 10
 
     if 'number' in session: number = session['number']
     else: number = ""
@@ -1925,15 +2573,7 @@ def books():
         sql2 += """ORDER BY NUMBER ASC
         """
 
-        if page_number is not None and page_number != "1":
-            page_number = int(page_number)
-            sql2 += "LIMIT {0}, {1} ".format(page_number * view_count, view_count)
-        else:
-            sql2 += "LIMIT  0, {0} ".format(view_count)
-            page_number = 1
-
         sql += sql2
-        print(sql)
         cur = conn.cursor()
         cur.execute(sql)
         result = ""
@@ -1964,22 +2604,6 @@ def books():
                         <span id="book_borrow_{0}">대여 중</span>
                     </div>""".format(NUMBER)
 
-        paging = ""
-        if page_number != 1:
-            paging += "<a href='/books?page_number={0}".format((page_number - 1))
-            if title is not None:
-                paging += "&title={0}'> < </a>".format(title)
-            else:
-                paging += "'> < </a>".format(title)
-
-        paging += "<a>{0}</a>".format(page_number)
-        paging += "<a href='/books?page_number={0}".format((page_number + 1))
-
-        if title is not None:
-            paging += "&title={0}' > > </a>".format(title)
-        else:
-            paging += "' > > </a>".format(title)
-
     except mariadb.Error as e:
         print(e)
         sys.exit(1)
@@ -1989,7 +2613,7 @@ def books():
         if conn:
             conn.close()
 
-    return render_template("/books.html", tag=aside, content=result, paging=paging)
+    return render_template("/books.html", tag=aside, content=result)
 
 @app.route('/book_borrow')
 def book_borrow():

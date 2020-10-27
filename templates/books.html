@@ -14,9 +14,6 @@
           </section>
           <section class="book__search">
             <form action="/books" method="get">
-              <div class=paging>
-                {{ paging | safe }}
-              </div>
               <div>
                 <select name="search">
                   <option value="">제목</option>
@@ -44,5 +41,4 @@
           </div>
         </div>
       </div>
-      <a>1</a><a href='/books?page_number=2&title='JAVA'> > </a>
 {% endblock %}

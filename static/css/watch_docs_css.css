@@ -40,3 +40,12 @@ section div textarea{
 section div span{
     color: white;
 }
+
+.h_sort{display : inline-block;}
+    
+section div div {
+    border : none;
+    margin-left: 5px;
+    margin-top: 5px
+
+}

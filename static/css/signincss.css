@@ -1,3 +1,5 @@
+/* 로그인(signin) CSS */
+
 * {
     box-sizing: border-box;
 }
@@ -13,39 +15,53 @@ section {
     position: relative;
     top: 100px;
 }
+.bigbox {
+    height: 300px;
+    width: 482px;
+    background-color:#F2F2F2;
+    margin: 0 auto;
+}
 
 input {
     text-align: center;
     height: 25px;
+    border: none;
+    display: inline-block;
+    margin: 0 auto;
 }
 
 .title {
-    float: left;
-    margin:20px;
+    margin:0 auto;
     width: 100px;
-    height: 100px;
-    top:100px;
+    top:150px;
+    padding-top: 5px;
 }
 
 .box1  {
-    float: left;
+    margin: 0 auto;
     text-decoration: none;
-    border-width: 1px;
-    border-style: solid;
-    display: block;
+    display: inline-block;
     list-style-type: none;
-    padding:20px 30px;
+    padding:0px 30px 10px 50px;
     font-weight: bold;
-    top:100px;
+}
+.input_box {
+    width: 350px;
+    height: 35px;
+    border-radius: 10px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    margin: 3px auto;
 }
 
 .box2, #signup1 {
-    float:left;
+    float: left;
+    margin: 0 auto;
     font-weight: bold;
     position: relative;
     vertical-align: middle;
-    top: 20px;
-    left: -50px;
+    top: 15px;
+    left: 70px;
 }
 
 #signup1 {
@@ -53,16 +69,16 @@ input {
     border-radius: 10px;
     width: 100px;
     height: 30px;
-    border-width: 2px;
-    cursor: pointer;    
+    background-color: #D8D8D8;
+    cursor: pointer;   
 }
 
 .box3 {
     display: block;
     clear: both;
     position: relative;
-    top: 60px;
-    left: 180px;
+    top: 30px;
+    left: 130px;
     
 }
 .signin2, .canceal {  
@@ -80,4 +96,7 @@ input {
 }
 .signin2 {
     background-color: lightblue;
+}
+.canceal {
+    background-color: #D8D8D8;
 }
