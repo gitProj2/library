@@ -1,0 +1,2 @@
+post_file = request.files['post_file']
+

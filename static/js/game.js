@@ -63,7 +63,7 @@ document.querySelectorAll('.btn').forEach(function(btn) {
             loseNumber++;
         }
         result.innerHTML = "플레이 횟수 = " + playTime + " 게임" + "<br>" + "<br>" +
-                           winNumber + " 승 " + loseNumber + " 패 " + drawNumber + " 무";
+        winNumber + " 승 " + loseNumber + " 패 " + drawNumber + " 무";
     });
 });
 

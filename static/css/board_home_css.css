@@ -1,7 +1,7 @@
 li{
     list-style: none;
 }
- 
+
 table{
     width: 100%;
     border: 1 1px solid #222;
@@ -11,26 +11,13 @@ table{
 thead {
     background-color: lightgray;
 }
- 
+
 th, td {
     border: 1px solid rgb(165, 162, 162);
     padding: 5px;
     font-size: 0.8em;
     text-align: center;
 }
-
-/* .t-size1 {
-    width: 2%;
-}
-.t-size2 {
-    width: 50%;
-}
-.t-size3 {
-    width: 10%;
-}
-.t-size4 {
-    width: 30%;
-} */
 
 .inline_float {
     display: inline;
@@ -40,7 +27,7 @@ th, td {
 .inline-block {
     display: inline;
 }
- 
+
 .float{
     float: right;
 }

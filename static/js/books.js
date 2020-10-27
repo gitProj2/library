@@ -3,6 +3,11 @@ function remove_btn(obj) {
     obj.parentNode.removeChild(obj);
 }
 
+// 로그인 안하고 대여시 로그인 해주세요 alert창
+function login_alert() {
+    alert("로그인을 해주세요");
+}
+
 // 도서 대여 ajax
 function borrow_book(book_number, obj) {
     var httpRequest = new XMLHttpRequest();
@@ -74,4 +79,11 @@ function return_book(book_number, obj) {
     }else {
         alert("반납이 취소되었습니다.");
     }
+}
+
+function book_datails(obj, number) {
+    document.getElementById('modal_detail').style.display='block';
+    document.getElementsByClassName('book_image')[0].src = obj.getAttribute('src');
+    document.getElementsByClassName('book_text')[0].innerHTML = document.getElementById('book_text_'+number).innerHTML;
+    document.getElementsByClassName('book_name')[0].innerHTML = document.getElementById('book_name_'+number).innerHTML;
 }

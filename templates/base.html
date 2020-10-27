@@ -9,23 +9,35 @@
 <body>
     <header>
         <div>
-          <a href="/opening">
+          <a href="/">
           <img src="../static/image/main/logo.png" id="logo" width="120px" alt="로고" ></a>
         </div>
     
         <div id="top_menu">
-          <a href="/sign_in">LOGIN</a>
+          {% if session["id"] and session["id"] == "master" %}
+          <a> {{ session["id"] }}님 환영합니다.</a>
           <a>l</a>
-          <a href="/sign_up">JOIN US</a>
+          <a href="/sign_out">LOGOUT</a>
           <a>l</a>
           <a href="/member_info">회원정보수정</a>
           <a>l</a>
           <a href="/master/master">MASTER PAGE</a>
+          {% elif session["id"] %}
+          <a> {{ session["id"] }}님 환영합니다.</a>
+          <a>l</a>
+          <a href="/sign_out">LOGOUT</a>
+          <a>l</a>
+          <a href="/member_info">회원정보수정</a>
+          {% else %}
+          <a href="/sign_in">LOGIN</a>
+          <a>l</a>
+          <a href="/sign_up">JOIN US</a>
+          {% endif %}
         </div>
     
         <nav id="navbar">
           <ul>
-            <li><a href="/">Home</a></li>
+            <li><a href="/main">Home</a></li>
             <li><a>l</a></li>
             <li><a href="/community/board_home">Community</a></li>
             <li><a>l</a></li>
