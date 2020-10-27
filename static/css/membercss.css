@@ -1,5 +1,13 @@
+/* 회원정보수정(member) CSS */
+
 li {
     padding:5px;
+}
+
+.bigbox {
+    width: 450px;
+    background-color: #F2F2F2;
+    margin: 0 auto;
 }
 
 section {
@@ -27,38 +35,34 @@ select {
 }
 
 .title {
-    float: left;
-    margin:20px;
-    width: 100px;
-    height: 100px;
-    top:30px;
+    margin:0 auto;
 }
 .signup{
     text-align: center;
 }
 .box1, .box2 {
-    float: left;
+    margin: 0 auto;
     text-decoration: none;
-    border-width: 1px;
-    border-style: solid;
     list-style-type: none;
     padding:10px 20px 10px 20px;
     font-weight: bold ;
     width: 300px;
+    margin-left: 60px;
 }
 .input_box {
     text-align: left;
     font-weight:bold;
-    border-width: 2px;
+    border: none;
+    border-radius: 5px;
 }
-
 
 .box3 {
     clear: both;
     position: relative;
-    left: 180px;
+    left: 90px;
+    top: 20px;
 }
-#confirm, #modify, #canceal {
+#confirm, #canceal {
     float: left;
     margin: 10px;
     text-decoration: none;
@@ -68,9 +72,12 @@ select {
     vertical-align: bottom;
     width: 100px;
     height: 30px;
-    border-width: 2px;
+    border: none;
     cursor: pointer;    
 }
 #confirm {
     background-color: lightblue;
+}
+#canceal {
+    background-color: lightgray;
 }
