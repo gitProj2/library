@@ -182,18 +182,18 @@ def member_info():
             <article>
             <div>            
             <ul class=\"box1\">
-                <li>아이디 &emsp;&emsp;<input type="text" name="id" readonly text-align="left" height="40" value="{1}" class="input_box"></li>
-                <li>비밀번호 &emsp;<input type="password" name="pw" text-align="left" height="40" value="{2}" class="input_box"></li>
+                <li>아이디 &emsp;&emsp;<input type="text" name="id" required readonly text-align="left" height="40" value="{1}"  class="input_box"></li>
+                <li>비밀번호 &emsp;<input type="password" name="pw" required text-align="left" height="40" value="{2}" class="input_box"></li>
             </ul>
             &nbsp;
             </div>
             <div>
                 <ul class=\"box2\">
-                    <li>이름 &emsp;&emsp;&emsp;<input type="text" name="name" height="40" value="{6}" class="input_box" ></li>
-                    <li>성별 &emsp;&emsp;&emsp;<input type="text" name="gender" height="40" value="{5}" class="input_box" ></li>
-                    <li>생년월일 &emsp;<input type="text" name="birthday" height="40" value="{7}" class="input_box" ></li>
-                    <li>연락처 &emsp;&emsp;<input type="text" name="phone" height="40" value="{3}" class="input_box"></li>
-                    <li>이메일 &emsp;&emsp;<input type="text" name="email" height="40" value="{4}" class="input_box"></li>
+                    <li>이름 &emsp;&emsp;&emsp;<input type="text" name="name" required height="40" value="{6}" class="input_box" ></li>
+                    <li>성별 &emsp;&emsp;&emsp;<input type="text" name="gender" required height="40" value="{5}" class="input_box" ></li>
+                    <li>생년월일 &emsp;<input type="text" name="birthday" required height="40" value="{7}" class="input_box" ></li>
+                    <li>연락처 &emsp;&emsp;<input type="text" name="phone" required height="40" value="{3}" class="input_box"></li>
+                    <li>이메일 &emsp;&emsp;<input type="text" name="email" required height="40" value="{4}" class="input_box"></li>
                 </ul>
             </div>""".format(ID, PW, NAME, GENDER, BIRTHDAY, PHONE, EMAIL, NUMBER)
 
