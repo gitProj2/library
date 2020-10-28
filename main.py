@@ -442,6 +442,73 @@ def master_b():
 
     return render_template("/master/books.html", content=result, catagory_tag=modal_book_catagory)
 
+
+@app.route('/master/report')
+def report():
+    result = ""
+    # 로그인 한 값이 있는 경우 DB에서 해당 정보를 불러오고, 없는 경우 로그인 알림창 뜸.
+    if 'number' in session:
+        r_num = session['number']
+        print(r_num)
+    else:
+        result = """
+        <script>
+        alert("관리자만 입장 가능합니다.");
+        </script>
+        """
+        return render_template("/main.html", content=result)
+
+    if r_num == 1:  # 마스터계정 번호일경우 접속
+        print(1)
+    else:
+        result = """
+        <script>
+        alert("관리자만 입장 가능합니다.");
+        </script>
+        """
+        return render_template("/main.html", content=result)
+
+    sql = """
+    SELECT B.NAME, M.ID, M.NAME AS USER, R.DATE, R.RETURN_DATE 
+    FROM RENTER_RECORD R
+    JOIN BOOK B
+    JOIN MEMBER M
+    ON B.NUMBER = R.BOOK_NUMBER
+    AND M.NUMBER = R.MEMBER_NUMBER 
+    ORDER BY R.DATE
+    """
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+        cur.execute(sql)
+
+        result = ""
+
+        for (NAME, ID, USER, DATE, RETURN_DATE) in cur:
+            result += """
+                <tbody>
+                    <tr>
+                        <td>{0}</td>
+                        <td>{1}</td>
+                        <td>{2}</td>
+                        <td>{3}</td>
+                        <td>{4}</td>
+                    </tr>
+                <tbody>
+                """.format(NAME, ID, USER, DATE, RETURN_DATE)
+    except mariadb.Error as e:
+        print(e)
+        result = "사용자 없음."
+        sys.exit(1)
+    except TypeError as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+
+    return render_template("/master/report.html", content=result)
+
 @app.route('/community/board_home')
 def board_home():
 
